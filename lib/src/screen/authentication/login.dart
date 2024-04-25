@@ -33,7 +33,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     final response = await http.post(
       // Uri.parse('http://143.198.217.4:1026/api/auth/login'),
-      Uri.parse('${dotenv.env['BASE_URL']}/api/auth/login'),
+      Uri.parse('${dotenv.env['BASE_URL']}/auth/login'),
       body: {
         'email': email,
         'password': password,
@@ -60,6 +60,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     } else {
       // Display error message for incorrect credentials
+      // print("error");
       setState(() {
         errorMessage = 'Incorrect account';
       });

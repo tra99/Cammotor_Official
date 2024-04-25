@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:cammotor_new_version/src/screen/authentication/forgetpss.dart';
 import 'package:cammotor_new_version/src/screen/authentication/login.dart';
@@ -44,7 +45,8 @@ class _SignUpScreenState extends State<SignUpScreen> {
     final String password=_passwordController.text;
 
     final response=await http.post(
-      Uri.parse('http://143.198.217.4:1026/api/auth/register'),
+      // Uri.parse('http://143.198.217.4:1026/api/auth/register'),
+      Uri.parse('${dotenv.env['BASE_URL']}/auth/register'),
       body: {
         'name':username,
         'email':gmail,

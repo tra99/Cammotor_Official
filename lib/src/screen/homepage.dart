@@ -4,6 +4,7 @@ import 'package:cammotor_new_version/src/screen/profile/profile.dart';
 import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/bottom_sheet.dart';
 import 'package:http/http.dart' as http;
@@ -650,7 +651,8 @@ Future<void> _logout(BuildContext context) async {
     // Send a request to the server to logout (clear token on the server)
     try {
       final response = await http.post(
-        Uri.parse('http://143.198.217.4:1026/api/auth/logout'),
+        // Uri.parse('http://143.198.217.4:1026/api/auth/logout'),
+        Uri.parse('${dotenv.env['BASE_URL']}/auth/logout'),
         headers: {
           'Authorization': 'Bearer $token',
         },
