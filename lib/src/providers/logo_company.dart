@@ -1,6 +1,7 @@
 import 'package:cammotor_new_version/src/model/logo_company.dart';
 import 'package:cammotor_new_version/src/services/company_logo.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class Clogo extends StatefulWidget {
   const Clogo({super.key});
@@ -34,7 +35,7 @@ class _ClogoState extends State<Clogo> {
                   subtitle: Text('ID: ${companyLogos[index].id}'),
                   trailing: SizedBox(
                     width: 40,
-                    child: Image.network('http://143.198.217.4:1026/api/storage/${companyLogos[index].image}'),
+                    child: Image.network('${dotenv.env['BASE_URL']}/storage/${companyLogos[index].image}'),
                   ),
                   // Add more widgets to display other company logo information as needed
                 );

@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cammotor_new_version/src/model/sub_category.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class ProductExpandedWidget extends StatelessWidget {
   final List<SubCategoryModel> filteredSubCategoryList;
@@ -47,7 +48,7 @@ class ProductExpandedWidget extends StatelessWidget {
                         topRight: Radius.circular(screenWidth * 0.05),
                       ),
                       child: CachedNetworkImage(
-                        imageUrl: 'http://143.198.217.4:1026/api/storage/${subCategory.image}',
+                        imageUrl: '${dotenv.env['BASE_URL']}/storage/${subCategory.image}',
                         fit: BoxFit.cover,
                         progressIndicatorBuilder: (context, url, downloadProgress) {
                           return CircularProgressIndicator(value: downloadProgress.progress);

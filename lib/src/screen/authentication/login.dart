@@ -42,7 +42,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (response.statusCode == 200) {
       final responseData = json.decode(response.body);
-      final token = responseData['data']; // Assuming your token key is 'data'
+      final token = responseData['data'];
 
       SharedPreferences prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', token);
@@ -50,7 +50,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
       _showSnackBar(context, 'ចូលគណនីជោគជ័យ');
 
-      // Delay navigation or any other actions if needed
       Future.delayed(const Duration(milliseconds: 500), () {
         Navigator.push(
           context,
@@ -59,8 +58,6 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
     } else {
-      // Display error message for incorrect credentials
-      // print("error");
       setState(() {
         errorMessage = 'Incorrect account';
       });

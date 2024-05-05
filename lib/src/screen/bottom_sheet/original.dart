@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cammotor_new_version/src/components/loading.dart';
 import 'package:cammotor_new_version/src/providers/pagination.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../model/logo_company.dart';
@@ -67,7 +68,7 @@ class _OriginalScreenState extends State<OriginalScreen> with AutomaticKeepAlive
   @override
   Widget build(BuildContext context) {
     CachedNetworkImage(
-       imageUrl: "http://143.198.217.4:1026/api/storage/",
+       imageUrl: '${dotenv.env['BASE_URL']}/storage',
        progressIndicatorBuilder: (context, url, downloadProgress) => 
                CircularProgressIndicator(value: downloadProgress.progress),
        errorWidget: (context, url, error) => const Icon(Icons.error),
@@ -151,7 +152,7 @@ class _OriginalScreenState extends State<OriginalScreen> with AutomaticKeepAlive
                                       borderRadius: BorderRadius.circular(50),
                                       child: Image(
                                         image: CachedNetworkImageProvider(
-                                          'http://143.198.217.4:1026/api/storage/${companyLogos[index].image}',
+                                          '${dotenv.env['BASE_URL']}/storage/${companyLogos[index].image}',
                                         ),
                                         fit: BoxFit.cover,
                                       ),
@@ -239,7 +240,7 @@ class _OriginalScreenState extends State<OriginalScreen> with AutomaticKeepAlive
                                                   borderRadius: BorderRadius.circular(30),
                                                   child: Image(
                                                     image: CachedNetworkImageProvider(
-                                                      'http://143.198.217.4:1026/api/storage/${model.image}',
+                                                      '${dotenv.env['BASE_URL']}/storage/${model.image}',
                                                     ),
                                                     fit: BoxFit.cover,
                                                   ),
@@ -273,16 +274,13 @@ class _OriginalScreenState extends State<OriginalScreen> with AutomaticKeepAlive
                             );
                           },
                         ),
-
-
-
-              ],
+                      ],
+                    );
+                  }
+                },
+              ),
             );
           }
-        },
-      ),
-    );
-  }
 
   void _scrollListener() {
     final provider = Provider.of<StudentProvider>(context, listen: false);

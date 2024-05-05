@@ -3,6 +3,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
 import 'package:cammotor_new_version/src/screen/product/product_detail.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
 
@@ -138,7 +139,8 @@ class _RealProductState extends State<RealProduct> {
                         onTap: () {
                           _showMyDialog(
                             product.name,
-                            'http://143.198.217.4:1026/api/storage/${product.img}',
+                            '${dotenv.env['BASE_URL']}/api/storage/${product.img}',
+                            // imageUrl: '${dotenv.env['BASE_URL']}/api/storage',
                             product.instock,
                             product.qty.toDouble(),
                             product.discount.toInt(),
@@ -186,7 +188,7 @@ class _RealProductState extends State<RealProduct> {
                                     aspectRatio: 2,
                                     child: Image(
                                       image: CachedNetworkImageProvider(
-                                          'http://143.198.217.4:1026/api/storage/${product.img}',
+                                          '${dotenv.env['BASE_URL']}/api/storage/${product.img}',
                                           maxWidth: 200,
                                           maxHeight: 200),
                                       // fit: BoxFit.cover,

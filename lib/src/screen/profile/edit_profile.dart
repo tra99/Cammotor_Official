@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
@@ -166,7 +167,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                     ? _image != null
                         ? MemoryImage(_image!)
                         : NetworkImage(
-                            "http://143.198.217.4:1026/api/storage/$_serverImage" ?? "https://icon-library.com/images/no-profile-pic-icon/no-profile-pic-icon-7.jpg",
+                            "${dotenv.env['BASE_URL']}/storage/$_serverImage" ?? "https://icon-library.com/images/no-profile-pic-icon/no-profile-pic-icon-7.jpg",
                           ) as ImageProvider
                     : const AssetImage('assets/images/f1.jpg'),
               ),

@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:cammotor_new_version/src/screen/profile/edit_profile.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -71,7 +72,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
             ),
             if (profile != null && profile!.isNotEmpty) // Check if profile data exists
               Image.network(
-                "http://143.198.217.4:1026/api/storage/$profile",
+                "${dotenv.env['BASE_URL']}/storage/$profile",
                 width: 120,
                 height: 120,
               ),

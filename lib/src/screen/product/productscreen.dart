@@ -3,6 +3,7 @@ import 'package:cammotor_new_version/src/model/category.dart';
 import 'package:cammotor_new_version/src/model/sub_category.dart';
 import 'package:flutter/material.dart';
 import 'package:bootstrap_icons/bootstrap_icons.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import '../../components/loading.dart';
 import '../../model/real_product.dart';
@@ -88,7 +89,8 @@ class _ProductScreenState extends State<ProductScreen> with AutomaticKeepAliveCl
   Widget build(BuildContext context) {
     subCategoryProvider = Provider.of<SubCategoryProvider>(context);
     CachedNetworkImage(
-       imageUrl: "http://143.198.217.4:1026/api/storage/",
+      //  imageUrl: "http://143.198.217.4:1026/api/storage/",
+       imageUrl: '${dotenv.env['BASE_URL']}/storage',
        progressIndicatorBuilder: (context, url, downloadProgress) => 
                CircularProgressIndicator(value: downloadProgress.progress),
        errorWidget: (context, url, error) => const Icon(Icons.error),
@@ -246,7 +248,7 @@ class _ProductScreenState extends State<ProductScreen> with AutomaticKeepAliveCl
                                 topRight: Radius.circular(MediaQuery.of(context).size.width * 0.05),
                               ),
                               child: CachedNetworkImage(
-                                imageUrl: 'http://143.198.217.4:1026/api/storage/${filteredSubCategoryList[index].image}',
+                                imageUrl: '${dotenv.env['BASE_URL']}/storage/${filteredSubCategoryList[index].image}',
                                 fit: BoxFit.cover,
                                 progressIndicatorBuilder: (context, url, downloadProgress) {
                                   return CircularProgressIndicator(value: downloadProgress.progress);

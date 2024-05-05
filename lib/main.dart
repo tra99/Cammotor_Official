@@ -57,6 +57,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'src/screen/authentication/login.dart';
+import 'src/screen/homepage.dart';
+
 void main() async {
   dotenv.load(fileName: ".env");
   WidgetsFlutterBinding.ensureInitialized();
@@ -104,7 +107,7 @@ class MyApp extends StatelessWidget {
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       // home: RealProduct(subcategoryID: 4,),
-      home: const SplashPage(),
+      home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );
   }
