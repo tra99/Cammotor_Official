@@ -139,7 +139,7 @@ class _RealProductState extends State<RealProduct> {
                         onTap: () {
                           _showMyDialog(
                             product.name,
-                            '${dotenv.env['BASE_URL']}/api/storage/${product.img}',
+                            '${dotenv.env['BASE_URL']}/storage/${product.img}',
                             // imageUrl: '${dotenv.env['BASE_URL']}/api/storage',
                             product.instock,
                             product.qty.toDouble(),
@@ -188,7 +188,7 @@ class _RealProductState extends State<RealProduct> {
                                     aspectRatio: 2,
                                     child: Image(
                                       image: CachedNetworkImageProvider(
-                                          '${dotenv.env['BASE_URL']}/api/storage/${product.img}',
+                                          '${dotenv.env['BASE_URL']}/storage/${product.img}',
                                           maxWidth: 200,
                                           maxHeight: 200),
                                       // fit: BoxFit.cover,
