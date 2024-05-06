@@ -253,7 +253,7 @@ class _HomePageState extends State<HomePage> {
                     borderRadius: BorderRadius.circular(50),
                     border: Border.all(width: 2, color: Colors.yellow)),
                 child: ClipOval(
-                  child: Image.asset('assets/images/profile.jpg',
+                  child: Image.asset('assets/images/f1.jpg',
                       fit: BoxFit.cover),
                 ),
               ),

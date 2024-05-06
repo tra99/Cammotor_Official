@@ -327,8 +327,18 @@ class _OriginalScreenState extends State<OriginalScreen> with AutomaticKeepAlive
                     if (snapshot.connectionState == ConnectionState.waiting) {
                       return CustomLoadingWidget();
                     } else if (snapshot.hasError) {
-                      return Text('Error: ${snapshot.error}');
-                    } else {
+                        return Container(
+                          alignment: Alignment.center,
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              CustomLoadingWidget1(),
+                              const SizedBox(height: 20),
+                              const Text('Checking connection...'),
+                            ],
+                          ),
+                        );
+                      }else {
                       final List<YearModel> yearModels = snapshot.data!;
 
                       final filteredYearModels = yearModels

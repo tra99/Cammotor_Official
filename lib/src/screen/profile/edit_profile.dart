@@ -54,7 +54,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
 
     if (authToken != null) {
       final response = await http.get(
-        Uri.parse('http://143.198.217.4:1026/api/auth/user/check'),
+        Uri.parse('${dotenv.env['BASE_URL']}/auth/user/check'),
         headers: {
           'Authorization': 'Bearer $authToken',
         },
@@ -252,7 +252,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
         // Create a FormData object and append the image file to it
         var request = http.MultipartRequest(
           'POST',
-          Uri.parse('http://143.198.217.4:1026/api/auth/user/update'),
+          Uri.parse('${dotenv.env['BASE_URL']}/auth/user/update'),
         );
         request.headers['Authorization'] = 'Bearer $authToken';
 

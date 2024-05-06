@@ -236,7 +236,7 @@ class _SignUpScreenState extends State<SignUpScreen> {
                             ),
                           ),
                           child: const Text(
-                            'Sign In',
+                            'បង្កើតគណនី',
                             style: TextStyle(
                                 color: Colors.white, fontSize: 24),
                           ),

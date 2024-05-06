@@ -206,7 +206,7 @@ class _LoginScreenState extends State<LoginScreen> {
                             ),
                           ),
                           child: const Text(
-                            'Login',
+                            'ចូលគណនី',
                             style: TextStyle(
                                 color: Colors.white, fontSize: 24),
                           ),

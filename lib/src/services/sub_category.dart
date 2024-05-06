@@ -5,7 +5,7 @@ import '../model/sub_category.dart';
 
 class SubCategoryService {
   Future<List<SubCategoryModel>> fetchDataSubCategoryModel(int currentPage, int pageSize, int categoryId) async {
-    final postUrl = "${dotenv.env['BASE_URL']}/api/search1/subcategory";
+    final postUrl = "${dotenv.env['BASE_URL']}/search1/subcategory";
 
     final response = await http.post(
       Uri.parse(postUrl),

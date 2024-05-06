@@ -5,7 +5,7 @@ import '../model/real_product.dart';
 
 class RealProductService {
   Future<List<RealProductModel>> fetchProductData(int currentPage, int pageSize, int subcategoryID) async {
-    final postUrl = "${dotenv.env['BASE_URL']}/api/search1/productd";
+    final postUrl = "${dotenv.env['BASE_URL']}/search1/productd";
 
     final response = await http.post(
       Uri.parse(postUrl),

@@ -29,7 +29,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
 
     if (authToken != null) {
       final response = await http.get(
-        Uri.parse('http://143.198.217.4:1026/api/auth/user/check'),
+        Uri.parse('${dotenv.env['BASE_URL']}/auth/user/check'),
         headers: {
           'Authorization': 'Bearer $authToken',
         },
@@ -70,18 +70,31 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
             SizedBox(
               height: MediaQuery.of(context).size.height * 0.06,
             ),
-            if (profile != null && profile!.isNotEmpty) // Check if profile data exists
+            if (profile != null && profile!.isNotEmpty) 
               Image.network(
                 "${dotenv.env['BASE_URL']}/storage/$profile",
                 width: 120,
                 height: 120,
               ),
-            if (profile == null || profile!.isEmpty) // If profile data is empty or null, show default icon
-              Icon(
-                Icons.account_box_outlined,
-                size: 120,
-                color: Colors.grey[700],
-            ),
+            if (profile == null || profile!.isEmpty) 
+            //   Icon(
+            //     Icons.account_box_outlined,
+            //     size: 120,
+            //     color: Colors.grey[700],
+            // ),
+              Container(
+                height: 110,
+                width: 110,
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(50),
+                    border: Border.all(width: 2, color: Colors.yellow)),
+                child: ClipOval(
+                  child: Image.asset('assets/images/f1.jpg',
+                      fit: BoxFit.cover),
+                ),
+              ),
+
+
             Text(
               '$name',
               style: const TextStyle(
@@ -90,7 +103,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
               ),
             ),
             Text('$email'),
-            const Text('+1234567890'),
+            // const Text('+1234567890'),
             const SizedBox(
               height: 10,
             ),
