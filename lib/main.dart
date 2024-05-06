@@ -107,7 +107,7 @@ class MyApp extends StatelessWidget {
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       // home: RealProduct(subcategoryID: 4,),
-      home: const HomePage(),
+      home: const SplashPage(),
       debugShowCheckedModeBanner: false,
     );
   }

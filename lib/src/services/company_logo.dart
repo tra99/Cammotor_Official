@@ -55,7 +55,7 @@ Future<List<CompanyLogo>> fetchDataCompanyLogo() async {
 
   final url = Uri.parse('${dotenv.env['BASE_URL']}/search1/company');
   final headers = {'Content-Type': 'application/json'};
-  final body = jsonEncode({"type_productID": 11});
+  final body = jsonEncode({"type_productID": 1});
 
   final response = await http.post(url, headers: headers, body: body);
 
