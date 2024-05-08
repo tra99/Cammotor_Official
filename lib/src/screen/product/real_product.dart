@@ -1,7 +1,5 @@
-import 'package:bootstrap_icons/bootstrap_icons.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
-import 'package:cammotor_new_version/src/screen/product/product_detail.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
