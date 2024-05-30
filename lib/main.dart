@@ -59,6 +59,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'src/screen/authentication/login.dart';
 import 'src/screen/homepage.dart';
+import 'src/screen/product/real_product.dart';
 
 void main() async {
   dotenv.load(fileName: ".env");
@@ -101,13 +102,13 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
-        snackBarTheme: const SnackBarThemeData(
+        snackBarTheme: const SnackBarThemeData( 
           backgroundColor: Colors.white,
         ),
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
-      // home: RealProduct(subcategoryID: 4,),
-      home: const SplashPage(),
+      home: RealProduct(subcategoryID: 13,),
+      // home: const HomePage(),
       debugShowCheckedModeBanner: false,
     );
   }

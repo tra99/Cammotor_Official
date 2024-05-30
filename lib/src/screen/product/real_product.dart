@@ -14,7 +14,7 @@ class RealProduct extends StatefulWidget {
   State<RealProduct> createState() => _RealProductState();
 }
 
-class _RealProductState extends State<RealProduct> {
+class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClientMixin{
   final scrollController = ScrollController();
   late SearchController searchController;
   late TextEditingController textEditingController = TextEditingController();
@@ -63,6 +63,7 @@ class _RealProductState extends State<RealProduct> {
 
   @override
   Widget build(BuildContext context) {
+    super.build(context);
     return Scaffold(
       appBar: AppBar(
         title: const Text('Products'),
@@ -310,13 +311,12 @@ class _RealProductState extends State<RealProduct> {
                   ),
                 ),
               ),
-              content: FractionallySizedBox(
-                widthFactor: 1,
-                heightFactor: 0.8,
-                child: SingleChildScrollView(
+              content: SingleChildScrollView(
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.8,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.min,
                     children: <Widget>[
                       Center(
                         child: Image.network(
@@ -326,59 +326,46 @@ class _RealProductState extends State<RealProduct> {
                           fit: BoxFit.cover,
                         ),
                       ),
-                      const SizedBox(height: 40),
+                      const SizedBox(height: 20),
                       Text(
                         '• In Stock: $instock',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(
-                        height: 6,
-                      ),
+                      const SizedBox(height: 6),
                       Text(
                         '• Quantity: $quantity',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(
-                        height: 6,
-                      ),
+                      const SizedBox(height: 6),
                       Text(
                         '• Discount: \$ $discount',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(
-                        height: 6,
-                      ),
+                      const SizedBox(height: 6),
                       Text(
                         '• Year: $yearID',
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                       ),
-                      const SizedBox(
-                        height: 20,
-                      ),
+                      const SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.end,
                         children: [
-                          
                           Container(
                             decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: const Color.fromARGB(255, 66, 53, 53)),
+                              borderRadius: BorderRadius.circular(10),
+                              color: const Color.fromARGB(255, 66, 53, 53),
+                            ),
                             child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
                               children: [
                                 IconButton(
                                   icon: const Icon(Icons.remove),
-                                  onPressed: (){
-                                    updateQtyCallback(qty - 1);
+                                  onPressed: () {
+                                    updateQtyCallback(quantity - 1);
                                   },
                                   color: Colors.white,
                                 ),
                                 Text(
-                                  '$qty',
+                                  '$quantity',
                                   style: const TextStyle(
                                     fontSize: 18,
                                     color: Colors.white,
@@ -387,8 +374,8 @@ class _RealProductState extends State<RealProduct> {
                                 ),
                                 IconButton(
                                   icon: const Icon(Icons.add),
-                                  onPressed: (){
-                                    updateQtyCallback(qty + 1);
+                                  onPressed: () {
+                                    updateQtyCallback(quantity + 1);
                                   },
                                   color: Colors.white,
                                 ),
@@ -396,7 +383,7 @@ class _RealProductState extends State<RealProduct> {
                             ),
                           ),
                         ],
-                      )
+                      ),
                     ],
                   ),
                 ),
@@ -409,8 +396,7 @@ class _RealProductState extends State<RealProduct> {
                       padding: const EdgeInsets.only(left: 10),
                       child: Text(
                         '\$ $discount',
-                        style: const TextStyle(
-                            fontSize: 24, fontWeight: FontWeight.w500),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
                       ),
                     ),
                     Container(
@@ -422,8 +408,9 @@ class _RealProductState extends State<RealProduct> {
                           color: const Color.fromARGB(255, 66, 53, 53),
                         ),
                         borderRadius: const BorderRadius.only(
-                            topLeft: Radius.circular(10),
-                            bottomRight: Radius.circular(10)),
+                          topLeft: Radius.circular(10),
+                          bottomRight: Radius.circular(10),
+                        ),
                         color: Colors.brown,
                       ),
                       child: IconButton(
@@ -445,4 +432,8 @@ class _RealProductState extends State<RealProduct> {
       },
     );
   }
+
+  
+  @override
+  bool get wantKeepAlive => true;
 }
