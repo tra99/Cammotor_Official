@@ -5,7 +5,7 @@ import '../services/real_product.dart';
 class RealProductProvider extends ChangeNotifier {
   List<RealProductModel> productData = [];
   int currentPage = 1;
-  int pageSize = 11;
+  int pageSize = 15;
   bool isLoading = false;
   List<RealProductModel> cachedData = [];
   final RealProductService productService = RealProductService(); 

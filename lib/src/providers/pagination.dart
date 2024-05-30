@@ -6,7 +6,7 @@ import '../services/pagination.dart';
 class StudentProvider extends ChangeNotifier {
   List<Model> modelData = [];
   int currentPage = 0;
-  int pageSize = 12;
+  int pageSize = 15;
   bool isLoading = false;
   List<Model> cachedData = [];
 

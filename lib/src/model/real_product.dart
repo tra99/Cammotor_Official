@@ -16,7 +16,7 @@ class RealProductModel {
   final int companyID;
   final int categoryID;
   final int subcategoryID ;
-  final int resourceID;
+  final int? resourceID;
 
   factory RealProductModel.fromJson(Map<String, dynamic> json) {
     return RealProductModel(
