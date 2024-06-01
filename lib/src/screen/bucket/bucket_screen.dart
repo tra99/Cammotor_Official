@@ -1,4 +1,6 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
@@ -10,7 +12,7 @@ class BasketPage extends StatefulWidget {
 }
 
 class _BasketPageState extends State<BasketPage> {
-  Map<String, int> _basketItems = {};
+  List<Map<String, dynamic>> basketItems = [];
 
   @override
   void initState() {
@@ -18,82 +20,71 @@ class _BasketPageState extends State<BasketPage> {
     _loadBasketItems();
   }
 
+  Future<void> _loadBasketItems() async {
+    final prefs = await SharedPreferences.getInstance();
+    final basketStringList = prefs.getStringList('basketItems') ?? [];
 
-void _addItemToBasket(String productId) async {
-  final prefs = await SharedPreferences.getInstance();
-  final List<String> basketItems = prefs.getStringList('basketItems') ?? [];
+    List<Map<String, dynamic>> loadedItems = basketStringList.map((item) {
+      final decodedItem = Map<String, dynamic>.from(jsonDecode(item));
+      print('Loaded item: $decodedItem'); // Debug: Print the decoded item
+      return decodedItem;
+    }).toList();
 
-  // Check if the product is already in the basket
-  int index = basketItems.indexWhere((item) => jsonDecode(item)['productId'] == productId);
-  if (index != -1) {
-    // Product already exists in basket, update the quantity
-    Map<String, dynamic> existingItem = jsonDecode(basketItems[index]);
-    existingItem['quantity']++;
-    basketItems[index] = jsonEncode(existingItem);
-  } else {
-    // Product does not exist in basket, add it with quantity 1
-    basketItems.add(jsonEncode({'productId': productId, 'quantity': 1}));
+    setState(() {
+      basketItems = loadedItems;
+    });
   }
 
-  await prefs.setStringList('basketItems', basketItems);
-  _loadBasketItems();
-}
+  Future<void> _removeBasketItem(int index) async {
+    final prefs = await SharedPreferences.getInstance();
+    final itemToRemove = basketItems[index];
+    basketItems.removeAt(index);
+    final updatedBasketStringList = basketItems.map((item) {
+      return jsonEncode(item);
+    }).toList();
 
-Future<void> _loadBasketItems() async {
-  final prefs = await SharedPreferences.getInstance();
-  final basketItems = prefs.getStringList('basketItems') ?? [];
-  final Map<String, int> basketMap = {};
+    await prefs.setStringList('basketItems', updatedBasketStringList);
+    setState(() {});
 
-  for (final item in basketItems) {
-    final decodedItem = jsonDecode(item);
-    final productId = decodedItem['productId'].toString();
-    final quantity = decodedItem['quantity'] as int;
-    basketMap[productId] = quantity;
+    final totalCount = basketItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
+    await prefs.setInt('basketCount', totalCount);
   }
-
-  setState(() {
-    _basketItems = basketMap;
-  });
-}
-
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Basket'),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.delete),
-            onPressed: () {
-              _clearBasket();
-            },
-          ),
-        ],
+        backgroundColor: const Color.fromARGB(255, 235, 233, 233),
+        title: const Text('កន្ត្រកទំនិញរបស់ខ្ញុំ'),
       ),
-
-      body: _basketItems.isEmpty
-          ? const Center(child: Text('No items in the basket'))
-          : ListView.builder(
-              itemCount: _basketItems.length,
-              itemBuilder: (context, index) {
-                final productId = _basketItems.keys.toList()[index];
-                final quantity = _basketItems[productId];
-                return ListTile(
-                  title: Text('Product ID: $productId'),
-                  subtitle: Text('Quantity: $quantity'),
-                );
-              },
+      body: ListView.builder(
+        itemCount: basketItems.length,
+        itemBuilder: (context, index) {
+          final item = basketItems[index];
+          print('Basket item: $item'); // Debug: Print the entire item
+          final imageUrl = '${dotenv.env['BASE_URL']}/storage/${item['img']}';
+          print('Image URL: $imageUrl'); 
+          return Card(
+            child: ListTile(
+              leading: item['img'] != null
+                  ? CachedNetworkImage(
+                      imageUrl: imageUrl,
+                      placeholder: (context, url) => const CircularProgressIndicator(),
+                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                    )
+                  : const SizedBox.shrink(),
+              title: Text(item['productName'] ?? 'Unknown Product'),
+              subtitle: Text('Quantity: ${item['quantity']}'),
+              trailing: IconButton(
+                icon: const Icon(Icons.delete),
+                onPressed: () {
+                  _removeBasketItem(index);
+                },
+              ),
             ),
+          );
+        },
+      ),
     );
   }
-
-  Future<void> _clearBasket() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('basketItems');
-    setState(() {
-      _basketItems.clear();
-    });
-  }
 }
-

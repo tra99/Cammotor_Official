@@ -27,56 +27,82 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   int basketCount = 0;
   int qty = 0;
 
-  void incrementQuantity() {
+  void _onIncreaseQuantity(String productName) {
     setState(() {
       qty++;
     });
+    _updateBasketItemQuantity(productName, qty);
   }
 
-  void decrementQuantity() {
-    setState(() {
-      if (qty > 0) {
+  void _onDecreaseQuantity(String productName) {
+    if (qty > 0) {
+      setState(() {
         qty--;
-      }
-    });
+      });
+      _updateBasketItemQuantity(productName, qty);
+    }
   }
-  void updateQuantity(int newQuantity) {
-    setState(() {
-      qty = newQuantity;
-    });
-  }
+    void updateQuantity(int newQuantity) {
+      setState(() {
+        qty = newQuantity;
+      });
+    }
 
-  Future<void> _saveBasketItem(String productName, int quantity) async {
+  Future<void> _saveBasketItem(String productName, int quantity, String img) async {
     final prefs = await SharedPreferences.getInstance();
-    List<String> basketItems = prefs.getStringList('basketItems') ?? [];
+    final basketItems = prefs.getStringList('basketItems') ?? [];
+    bool itemExists = false;
 
-    // Check if the product is already in the basket
-    int index = basketItems.indexWhere((item) => jsonDecode(item)['productName'] == productName);
-    if (index != -1) {
-      // Product already exists in basket, update the quantity
-      Map<String, dynamic> existingItem = jsonDecode(basketItems[index]);
-      existingItem['quantity'] += quantity;
-      basketItems[index] = jsonEncode(existingItem);
-    } else {
-      // Product does not exist in basket, add it with quantity
-      basketItems.add(jsonEncode({'productName': productName, 'quantity': quantity}));
+    // Check if the product already exists in the basket
+    for (int i = 0; i < basketItems.length; i++) {
+      final item = jsonDecode(basketItems[i]);
+      if (item['productName'] == productName) {
+        // Update the quantity of the existing product
+        item['quantity'] += quantity;
+        basketItems[i] = jsonEncode(item);
+        itemExists = true;
+        break;
+      }
+    }
+
+    // If the product does not exist in the basket, add a new entry
+    if (!itemExists) {
+      basketItems.add(jsonEncode({
+        'productName': productName,
+        'quantity': quantity,
+        'img': img, // Add the img field here
+      }));
     }
 
     // Save the updated basket items
     await prefs.setStringList('basketItems', basketItems);
-    _loadBasketCount();
+
+    // Update the basket count
+    await _loadBasketCount();
   }
 
 
 
 
-Future<void> _loadBasketCount() async {
-  final prefs = await SharedPreferences.getInstance();
-  final basketItems = prefs.getStringList('basketItems') ?? [];
-  setState(() {
-    basketCount = basketItems.length;
-  });
-}
+
+
+
+  Future<void> _loadBasketCount() async {
+    final prefs = await SharedPreferences.getInstance();
+    final basketItems = prefs.getStringList('basketItems') ?? [];
+    int totalCount = 0;
+
+    for (var item in basketItems) {
+      final decodedItem = jsonDecode(item);
+      totalCount += (decodedItem['quantity'] as num).toInt();
+    }
+
+    setState(() {
+      basketCount = totalCount;
+    });
+  }
+
+
 
 
   @override
@@ -109,7 +135,21 @@ Future<void> _loadBasketCount() async {
       prefs.setInt('basketCount', basketCount);
     });
   }
-  
+
+  void _updateBasketItemQuantity(String productName, int quantity) async {
+    final prefs = await SharedPreferences.getInstance();
+    final basketItems = prefs.getStringList('basketItems') ?? [];
+    final updatedBasketItems = basketItems.map((item) {
+      final decodedItem = jsonDecode(item);
+      if (decodedItem['productName'] == productName) {
+        decodedItem['quantity'] = quantity;
+      }
+      return jsonEncode(decodedItem);
+    }).toList();
+
+    await prefs.setStringList('basketItems', updatedBasketItems);
+  }
+    
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +261,6 @@ Future<void> _loadBasketCount() async {
                           _showMyDialog(
                             product.name,
                             '${dotenv.env['BASE_URL']}/storage/${product.img}',
-                            // imageUrl: '${dotenv.env['BASE_URL']}/api/storage',
                             product.instock.toString(),
                             product.qty,
                             product.discount.toDouble(),
@@ -504,10 +543,10 @@ Future<void> _loadBasketCount() async {
                       ),
                       onPressed: () {
                         updateQtyCallback(dialogQty);
-                        _saveBasketItem(resourceID, dialogQty);
+                        _saveBasketItem(productName, dialogQty,img);
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Save',style: TextStyle(color: Colors.white),),
+                      child: const Text('Save', style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -520,188 +559,9 @@ Future<void> _loadBasketCount() async {
   }
   @override
   bool get wantKeepAlive => true;
+
 }
 
 
-// save qty in local storage when user click increase or decrease
 
-// Future<void> _showMyDialog(
-//   String productName,
-//   String img,
-//   String instock,
-//   int initialQuantity,
-//   double discount,
-//   int yearID,
-//   int modelID,
-//   String resourceID,
-//   Function(int) updateQtyCallback,
-// ) async {
-//   int dialogQty = await _getSavedQuantity(resourceID);
-
-//   return showDialog<void>(
-//     context: context,
-//     barrierDismissible: true,
-//     builder: (BuildContext context) {
-//       return Center(
-//         child: Theme(
-//           data: ThemeData(dialogBackgroundColor: Colors.white),
-//           child: AlertDialog(
-//             backgroundColor: Colors.white,
-//             shape: RoundedRectangleBorder(
-//               borderRadius: BorderRadius.circular(10.0),
-//             ),
-//             title: Center(
-//               child: Text(
-//                 productName,
-//                 style: const TextStyle(
-//                   fontWeight: FontWeight.bold,
-//                   color: Color.fromARGB(255, 92, 88, 88),
-//                 ),
-//               ),
-//             ),
-//             content: StatefulBuilder(
-//               builder: (BuildContext context, StateSetter setState) {
-//                 return SingleChildScrollView(
-//                   child: SizedBox(
-//                     width: MediaQuery.of(context).size.width * 0.8,
-//                     child: Column(
-//                       crossAxisAlignment: CrossAxisAlignment.start,
-//                       mainAxisSize: MainAxisSize.min,
-//                       children: <Widget>[
-//                         Center(
-//                           child: Image.network(
-//                             img,
-//                             width: double.infinity,
-//                             height: MediaQuery.of(context).size.height * 0.25,
-//                             fit: BoxFit.cover,
-//                           ),
-//                         ),
-//                         const SizedBox(height: 20),
-//                         Text(
-//                           '• In Stock: $instock',
-//                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-//                         ),
-//                         const SizedBox(height: 6),
-//                         Text(
-//                           '• Available Quantity: $initialQuantity',
-//                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-//                         ),
-//                         const SizedBox(height: 6),
-//                         Text(
-//                           '• Discount: \$ $discount',
-//                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-//                         ),
-//                         const SizedBox(height: 6),
-//                         Text(
-//                           '• Year: $yearID',
-//                           style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-//                         ),
-//                         const SizedBox(height: 20),
-//                         Row(
-//                           mainAxisAlignment: MainAxisAlignment.end,
-//                           children: [
-//                             Container(
-//                               decoration: BoxDecoration(
-//                                 borderRadius: BorderRadius.circular(10),
-//                                 color: const Color.fromARGB(255, 66, 53, 53),
-//                               ),
-//                               child: Row(
-//                                 children: [
-//                                   IconButton(
-//                                     icon: const Icon(Icons.remove),
-//                                     onPressed: () {
-//                                       setState(() {
-//                                         if (dialogQty > 0) {
-//                                           dialogQty--;
-//                                           updateQtyCallback(dialogQty);
-//                                           _saveQuantity(resourceID, dialogQty);
-//                                         }
-//                                       });
-//                                     },
-//                                     color: Colors.white,
-//                                   ),
-//                                   Text(
-//                                     '$dialogQty',
-//                                     style: const TextStyle(
-//                                       fontSize: 18,
-//                                       color: Colors.white,
-//                                       fontWeight: FontWeight.w500,
-//                                     ),
-//                                   ),
-//                                   IconButton(
-//                                     icon: const Icon(Icons.add),
-//                                     onPressed: () {
-//                                       setState(() {
-//                                         dialogQty++;
-//                                         updateQtyCallback(dialogQty);
-//                                         _saveQuantity(resourceID, dialogQty);
-//                                       });
-//                                     },
-//                                     color: Colors.white,
-//                                   ),
-//                                 ],
-//                               ),
-//                             ),
-//                           ],
-//                         ),
-//                       ],
-//                     ),
-//                   ),
-//                 );
-//               },
-//             ),
-//             actions: <Widget>[
-//               Row(
-//                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-//                 children: [
-//                   Padding(
-//                     padding: const EdgeInsets.only(left: 10),
-//                     child: Text(
-//                       '\$ $discount',
-//                       style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-//                     ),
-//                   ),
-//                   Container(
-//                     width: 60,
-//                     height: 60,
-//                     decoration: BoxDecoration(
-//                       border: Border.all(
-//                         width: 1,
-//                         color: const Color.fromARGB(255, 66, 53, 53),
-//                       ),
-//                       borderRadius: const BorderRadius.only(
-//                         topLeft: Radius.circular(10),
-//                         bottomRight: Radius.circular(10),
-//                       ),
-//                       color: Colors.brown,
-//                     ),
-//                     child: IconButton(
-//                       icon: const Icon(
-//                         Icons.shopping_basket_outlined,
-//                         color: Color.fromARGB(255, 249, 184, 87),
-//                       ),
-//                       onPressed: () {
-//                         Navigator.of(context).pop();
-//                       },
-//                     ),
-//                   ),
-//                 ],
-//               ),
-//             ],
-//           ),
-//         ),
-//       );
-//     },
-//   );
-// }
-
-// Future<void> _saveQuantity(String resourceID, int quantity) async {
-//   final prefs = await SharedPreferences.getInstance();
-//   await prefs.setInt(resourceID, quantity);
-// }
-
-// Future<int> _getSavedQuantity(String resourceID) async {
-//   final prefs = await SharedPreferences.getInstance();
-//   return prefs.getInt(resourceID) ?? 0;
-// }
 
