@@ -1,64 +1,12 @@
-// import 'package:cammotor_new_version/src/providers/pagination.dart';
-// import 'package:cammotor_new_version/src/providers/sub_categ.dart';
-// import 'package:cammotor_new_version/src/screen/authentication/login.dart';
-// import 'package:cammotor_new_version/src/screen/homepage.dart';
-// import 'package:flutter/material.dart';
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
-// import 'package:provider/provider.dart';
-
-// void main() {
-//   dotenv.load(fileName: ".env");
-//   runApp(
-//     MultiProvider(
-//       providers: [
-//         ChangeNotifierProvider(create: (_) => StudentProvider()),
-//         ChangeNotifierProvider(create: (_) => CopyProvider()),
-//         ChangeNotifierProvider(create: (_) => SubCategoryProvider()),
-//       ],
-//       child: const MyApp(),
-//     ),
-//   );
-  
-// }
-
-// class MyApp extends StatelessWidget {
-//   const MyApp({super.key});
-
-//   // This widget is the root of your application.
-//   @override
-//   Widget build(BuildContext context) {
-//     return MaterialApp(
-//       title: 'Flutter Demo',
-//       theme: ThemeData(
-//         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
-//         useMaterial3: true,
-//         snackBarTheme: const SnackBarThemeData(
-//           backgroundColor: Colors.white
-//         )
-//       ), 
-//       home: 
-//       const HomePage(),
-
-//       // TestCardProduct(key: UniqueKey(),),
-//       debugShowCheckedModeBanner: false,
-//     );
-//   }
-// }
-
-
 import 'package:cammotor_new_version/src/model/property.dart';
 import 'package:cammotor_new_version/src/providers/pagination.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
 import 'package:cammotor_new_version/src/providers/sub_categ.dart';
 import 'package:cammotor_new_version/src/services/property.dart';
-import 'package:cammotor_new_version/src/splash_screen/splash_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'src/screen/authentication/login.dart';
-import 'src/screen/homepage.dart';
 import 'src/screen/product/real_product.dart';
 
 void main() async {
@@ -108,7 +56,7 @@ class MyApp extends StatelessWidget {
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       home: RealProduct(subcategoryID: 13,),
-      // home: const HomePage(),
+      // home: const SplashPage(),
       debugShowCheckedModeBanner: false,
     );
   }

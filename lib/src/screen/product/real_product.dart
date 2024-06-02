@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../bucket/basket_notifier.dart';
 import '../bucket/bucket_screen.dart';
 
 class RealProduct extends StatefulWidget {
@@ -20,7 +20,8 @@ class RealProduct extends StatefulWidget {
 }
 
 class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClientMixin{
-  final scrollController = ScrollController();
+  // final scrollController = ScrollController();
+  late ScrollController _scrollController;
   late SearchController searchController;
   late TextEditingController textEditingController = TextEditingController();
 
@@ -53,7 +54,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     final basketItems = prefs.getStringList('basketItems') ?? [];
     bool itemExists = false;
 
-    // Check if the product already exists in the basket
     for (int i = 0; i < basketItems.length; i++) {
       final item = jsonDecode(basketItems[i]);
       if (item['productName'] == productName) {
@@ -70,22 +70,13 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       basketItems.add(jsonEncode({
         'productName': productName,
         'quantity': quantity,
-        'img': img, // Add the img field here
+        'img': img,
       }));
     }
-
-    // Save the updated basket items
     await prefs.setStringList('basketItems', basketItems);
 
-    // Update the basket count
     await _loadBasketCount();
   }
-
-
-
-
-
-
 
   Future<void> _loadBasketCount() async {
     final prefs = await SharedPreferences.getInstance();
@@ -102,16 +93,14 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     });
   }
 
-
-
-
   @override
   void initState() {
     super.initState();
     
+    _scrollController = ScrollController();
     searchController = SearchController();
     
-    scrollController.addListener(_scrollListener);
+    _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       fetchInitialData(widget.subcategoryID);
       _loadBasketCount();
@@ -172,33 +161,39 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                 alignment: Alignment.center,
                 children: [
                   const Icon(
-                    Icons.shopping_basket,
-                    size: 24,
+                    Icons.shopping_cart,
+                    size: 30,
                   ),
-                  if (basketCount > 0)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(2),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 14,
-                          minHeight: 14,
-                        ),
-                        child: Text(
-                          '$basketCount',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ),
-                    ),
+                  ValueListenableBuilder<int>(
+                    valueListenable: BasketNotifier.basketCount,
+                    builder: (context, basketCount, child) {
+                      return basketCount > 0
+                          ? Positioned(
+                              right: 0,
+                              top: 0,
+                              child: Container(
+                                padding: const EdgeInsets.all(2),
+                                decoration: BoxDecoration(
+                                  color: Colors.green,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                constraints: const BoxConstraints(
+                                  minWidth: 14,
+                                  minHeight: 14,
+                                ),
+                                child: Text(
+                                  '$basketCount',
+                                  style: const TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 10,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ),
+                            )
+                          : const SizedBox.shrink();
+                    },
+                  ),
                 ],
               ),
             ),
@@ -232,8 +227,8 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                 child: NotificationListener<ScrollNotification>(
                   onNotification: (ScrollNotification scrollInfo) {
                     if (!provider.isLoading &&
-                        scrollInfo.metrics.pixels ==
-                            scrollInfo.metrics.maxScrollExtent) {
+                        scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent) {
+                      print('ScrollNotification triggered, fetching more data...');
                       provider.fetchProductData(
                         provider.currentPage + 1,
                         provider.pageSize,
@@ -244,17 +239,17 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                     return false;
                   },
                   child: GridView.builder(
-                    controller: scrollController,
+                    controller: _scrollController,
                     gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                       crossAxisCount: 3,
                       mainAxisSpacing: 12,
                       childAspectRatio: 0.7,
                     ),
-                    itemCount: provider.filteredProductData.length, // Use filtered data length
+                    itemCount: provider.filteredProductData.length, 
                     itemBuilder: (context, index) {
-                      final product = provider.filteredProductData[index]; // Use filtered data
+                      final product = provider.filteredProductData[index]; 
                       if (product.subcategoryID != widget.subcategoryID) {
-                        return const SizedBox.shrink(); // Hide products of other categories
+                        return const SizedBox.shrink(); 
                       }
                       return GestureDetector(
                         onTap: () {
@@ -389,16 +384,16 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   void _scrollListener() {
     final provider = Provider.of<RealProductProvider>(context, listen: false);
     if (!provider.isLoading &&
-        scrollController.position.pixels ==
-            scrollController.position.maxScrollExtent) {
-      provider.fetchProductData(
-          provider.currentPage + 1, provider.pageSize, widget.subcategoryID);
+        _scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      print('Reached the bottom of the list, fetching more data...');
+      provider.fetchProductData(provider.currentPage + 1, provider.pageSize, widget.subcategoryID);
     }
   }
 
+
   @override
   void dispose() {
-    scrollController.dispose();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -546,7 +541,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                         _saveBasketItem(productName, dialogQty,img);
                         Navigator.of(context).pop();
                       },
-                      child: const Text('Save', style: TextStyle(color: Colors.white)),
+                      child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
                     ),
                   ],
                 ),
@@ -561,7 +556,3 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   bool get wantKeepAlive => true;
 
 }
-
-
-
-
