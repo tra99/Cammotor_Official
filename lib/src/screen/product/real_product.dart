@@ -96,16 +96,13 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   @override
   void initState() {
     super.initState();
-    
-    _scrollController = ScrollController();
     searchController = SearchController();
-    
+    _scrollController = ScrollController();
     _scrollController.addListener(_scrollListener);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      fetchInitialData(widget.subcategoryID);
       _loadBasketCount();
+      Provider.of<RealProductProvider>(context, listen: false).fetchInitialData(widget.subcategoryID);
     });
-    
   }
   
   Future<void> fetchInitialData(int subcategoryID) async {
@@ -231,8 +228,8 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                       print('ScrollNotification triggered, fetching more data...');
                       provider.fetchProductData(
                         provider.currentPage + 1,
-                        provider.pageSize,
-                        widget.subcategoryID,
+                        // provider.pageSize,
+                        // widget.subcategoryID,
                       );
                       return true;
                     }
@@ -383,10 +380,9 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
 
   void _scrollListener() {
     final provider = Provider.of<RealProductProvider>(context, listen: false);
-    if (!provider.isLoading &&
-        _scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      print('Reached the bottom of the list, fetching more data...');
-      provider.fetchProductData(provider.currentPage + 1, provider.pageSize, widget.subcategoryID);
+    if (!provider.isLoading && _scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
+      print('ScrollListener triggered, fetching more data...');
+      provider.fetchProductData(widget.subcategoryID);
     }
   }
 
@@ -408,6 +404,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     String price,
     String resourceID,
     Function(int) updateQtyCallback,
+    
   ) async {
     int dialogQty = 0;
 
@@ -493,7 +490,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                                       color: Colors.white,
                                     ),
                                     Text(
-                                      '$dialogQty', // User's selected quantity
+                                      '$dialogQty',
                                       style: const TextStyle(
                                         fontSize: 18,
                                         color: Colors.white,
@@ -554,5 +551,4 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   }
   @override
   bool get wantKeepAlive => true;
-
 }
