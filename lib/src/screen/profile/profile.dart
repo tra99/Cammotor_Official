@@ -20,6 +20,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
   String? name = '';
   String? email = '';
   String? profile='';
+  int? userId;
 
   @override
   void initState() {
@@ -45,6 +46,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
           name = responseData['test']['name'];
           email = responseData['test']['email'];
           profile=responseData['test']['profile'];
+          userId=responseData['test']['id'];
         });
         print(responseData);
       } else {
@@ -103,6 +105,7 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
                 ),
               ),
               Text('$email'),
+              Text('$userId'.toString()),
               // const Text('+1234567890'),
               const SizedBox(
                 height: 10,

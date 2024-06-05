@@ -11,6 +11,8 @@ import 'src/screen/homepage.dart';
 import 'src/screen/product/real_product.dart';
 import 'src/screen/profile/profile.dart';
 import 'src/splash_screen/splash_screen.dart';
+import 'src/tests/add_to_card.dart';
+import 'src/tests/test_store_backet.dart';
 
 void main() async {
   dotenv.load(fileName: ".env");
@@ -59,7 +61,8 @@ class MyApp extends StatelessWidget {
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       // home: RealProduct(subcategoryID: 13,),
-      home: const SplashPage(),
+      // home: const AddToCardScreenTest(),
+      home:  StoreBasketScreenTest(),
       debugShowCheckedModeBanner: false,
     );
   }
