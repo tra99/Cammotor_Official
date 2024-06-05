@@ -193,6 +193,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
                         icon: const Icon(Icons.clear),
                       ),
                     ),
+                    
                 ],
               ),
 

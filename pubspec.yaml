@@ -57,6 +57,7 @@ dependencies:
   flutter_dotenv: ^5.1.0
   image_picker: ^1.0.8
   flutter_launcher_icons: ^0.13.1
+  dialog_alert: ^0.0.3
 
 dev_dependencies:
   flutter_test:

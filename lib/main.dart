@@ -7,7 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'src/screen/homepage.dart';
 import 'src/screen/product/real_product.dart';
+import 'src/screen/profile/profile.dart';
+import 'src/splash_screen/splash_screen.dart';
 
 void main() async {
   dotenv.load(fileName: ".env");
@@ -55,8 +58,8 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
-      home: RealProduct(subcategoryID: 13,),
-      // home: const SplashPage(),
+      // home: RealProduct(subcategoryID: 13,),
+      home: const SplashPage(),
       debugShowCheckedModeBanner: false,
     );
   }
