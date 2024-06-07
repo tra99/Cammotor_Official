@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'src/screen/homepage.dart';
 import 'src/screen/product/real_product.dart';
+import 'src/screen/profile/edit_profile.dart';
 import 'src/screen/profile/profile.dart';
 import 'src/splash_screen/splash_screen.dart';
 import 'src/tests/add_to_card.dart';
@@ -62,7 +63,7 @@ class MyApp extends StatelessWidget {
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       // home: RealProduct(subcategoryID: 13,),
       // home: const AddToCardScreenTest(),
-      home:  StoreBasketScreenTest(),
+      home:  SplashPage(),
       debugShowCheckedModeBanner: false,
     );
   }
