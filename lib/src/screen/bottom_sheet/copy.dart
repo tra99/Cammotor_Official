@@ -153,7 +153,7 @@ class _CopyScreenState extends State<CopyScreen> with AutomaticKeepAliveClientMi
                                       borderRadius: BorderRadius.circular(50),
                                       child: Image(
                                         image: CachedNetworkImageProvider(
-                                          'imageUrl/${companyLogos[index].image}',
+                                          '${dotenv.env['BASE_URL']}/storage/${companyLogos[index].image}',
                                         ),
                                         fit: BoxFit.cover,
                                       ),

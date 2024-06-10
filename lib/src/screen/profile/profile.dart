@@ -182,33 +182,56 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
         request.fields['telephone'] = _controller3.text;
         request.fields['main_balance'] = main_balance.toString();
 
-        // Log and validate type_userID before sending request
         if (type_userID != null && type_userID! > 0) {
-          print('Valid type_userID: $type_userID');
           request.fields['type_userID'] = type_userID.toString();
-        } else {
-          print('Invalid type_userID');
-          // Handle accordingly, maybe skip or send a default value
         }
 
         request.fields['dateOfBirth'] = _controller4.text;
 
+        // Log the request data
+        print('Request URL: ${request.url}');
+        print('Request Headers: ${request.headers}');
+        print('Request Fields: ${request.fields}');
+        if (_image != null) {
+          print('Image is being uploaded');
+        } else {
+          print('No image to upload');
+        }
+
         try {
           final response = await request.send();
-
-          print('Request URL: ${request.url}');
-          print('Request Headers: ${request.headers}');
-          print('Request Fields: ${request.fields}');
-          if (_image != null) {
-            print('Image is being uploaded');
-          } else {
-            print('No image to upload');
-          }
 
           if (response.statusCode == 200) {
             print('Profile updated successfully');
             final responseBody = await response.stream.bytesToString();
             print('Response body: $responseBody');
+
+            // Manually update the local user data
+            // Update these variables with the new values from the form
+            name = _controller1.text;
+            email = _controller2.text;
+            // Make sure telephone, main_balance, and dateOfBirth are declared and initialized appropriately
+            // Example:
+            String? telephone = _controller3.text;
+            String? dateOfBirth = _controller4.text;
+            main_balance = int.parse(_controller7.text); // Parse from the correct controller
+
+            if (_image != null) {
+              profile = 'profile.jpg'; // Update with the correct path if necessary
+            }
+            
+            // Save updated data to SharedPreferences or any local storage
+            await prefs.setString('name', name ?? '');
+            await prefs.setString('email', email ?? '');
+            await prefs.setString('telephone', telephone ?? '');
+            await prefs.setInt('main_balance', main_balance ?? 0); // Adjusted to setInt for integers
+            await prefs.setString('dateOfBirth', dateOfBirth ?? '');
+            if (_image != null) {
+              await prefs.setString('profile', 'profile.jpg');
+            }
+
+            // Log the updated user data
+            print('Updated user data: {id: $id, name: $name, email: $email, telephone: $telephone, main_balance: $main_balance, dateOfBirth: $dateOfBirth, profile: $profile}');
           } else {
             print('Failed to update profile. Status code: ${response.statusCode}');
             final responseBody = await response.stream.bytesToString();

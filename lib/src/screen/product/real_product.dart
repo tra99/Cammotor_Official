@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../services/store_basket.dart';
 import '../bucket/basket_notifier.dart';
 import '../bucket/bucket_screen.dart';
 
@@ -27,6 +28,8 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
 
   int basketCount = 0;
   int qty = 0;
+  bool _firstItemAdded = false;
+  
 
   void _onIncreaseQuantity(String productName) {
     setState(() {
@@ -394,161 +397,193 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   }
 
   Future<void> _showMyDialog(
-    String productName,
-    String img,
-    String instock,
-    int initialQuantity,
-    double discount,
-    int yearID,
-    int modelID,
-    String price,
-    String resourceID,
-    Function(int) updateQtyCallback,
-    
-  ) async {
-    int dialogQty = 0;
+  String productName,
+  String img,
+  String instock,
+  int initialQuantity,
+  double discount,
+  int yearID,
+  int modelID,
+  String price,
+  String resourceID,
+  Function(int) updateQtyCallback,
+) async {
+  int dialogQty = 0;
 
-    return showDialog<void>(
-      context: context,
-      barrierDismissible: true,
-      builder: (BuildContext context) {
-        return Center(
-          child: Theme(
-            data: ThemeData(dialogBackgroundColor: Colors.white),
-            child: AlertDialog(
-              backgroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10.0),
-              ),
-              title: Center(
-                child: Text(
-                  productName,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Color.fromARGB(255, 92, 88, 88),
-                  ),
-                ),
-              ),
-              content: StatefulBuilder(
-                builder: (BuildContext context, StateSetter setState) {
-                  return SingleChildScrollView(
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.8,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: <Widget>[
-                          Center(
-                            child: Image.network(
-                              img,
-                              width: double.infinity,
-                              height: MediaQuery.of(context).size.height * 0.25,
-                              fit: BoxFit.cover,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          Text(
-                            '• In Stock: $instock',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '• Available Quantity: $initialQuantity',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '• Discount: \$ $discount',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 6),
-                          Text(
-                            '• Year: $yearID',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                          ),
-                          const SizedBox(height: 20),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.end,
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10),
-                                  color: const Color.fromARGB(255, 66, 53, 53),
-                                ),
-                                child: Row(
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.remove),
-                                      onPressed: () {
-                                        setState(() {
-                                          if (dialogQty > 0) {
-                                            dialogQty--;
-                                            updateQtyCallback(dialogQty);
-                                          }
-                                        });
-                                      },
-                                      color: Colors.white,
-                                    ),
-                                    Text(
-                                      '$dialogQty',
-                                      style: const TextStyle(
-                                        fontSize: 18,
-                                        color: Colors.white,
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.add),
-                                      onPressed: () {
-                                        setState(() {
-                                          dialogQty++;
-                                          updateQtyCallback(dialogQty);
-                                        });
-                                      },
-                                      color: Colors.white,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                  );
-                },
-              ),
-              actions: <Widget>[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.only(left: 10),
-                      child: Text(
-                        '\$ $price',
-                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                      ),
-                    ),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color.fromARGB(255, 92, 88, 88),
-                      ),
-                      onPressed: () {
-                        updateQtyCallback(dialogQty);
-                        _saveBasketItem(productName, dialogQty,img);
-                        Navigator.of(context).pop();
-                      },
-                      child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
-                    ),
-                  ],
-                ),
-              ],
+  return showDialog<void>(
+    context: context,
+    barrierDismissible: true,
+    builder: (BuildContext context) {
+      return Center(
+        child: Theme(
+          data: ThemeData(dialogBackgroundColor: Colors.white),
+          child: AlertDialog(
+            backgroundColor: Colors.white,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10.0),
             ),
+            title: Center(
+              child: Text(
+                productName,
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  color: Color.fromARGB(255, 92, 88, 88),
+                ),
+              ),
+            ),
+            content: StatefulBuilder(
+              builder: (BuildContext context, StateSetter setState) {
+                return SingleChildScrollView(
+                  child: SizedBox(
+                    width: MediaQuery.of(context).size.width * 0.8,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: <Widget>[
+                        Center(
+                          child: Image.network(
+                            img,
+                            width: double.infinity,
+                            height: MediaQuery.of(context).size.height * 0.25,
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        Text(
+                          '• In Stock: $instock',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '• Available Quantity: $initialQuantity',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '• Discount: \$ $discount',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          '• Year: $yearID',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                        ),
+                        const SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Container(
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10),
+                                color: const Color.fromARGB(255, 66, 53, 53),
+                              ),
+                              child: Row(
+                                children: [
+                                  IconButton(
+                                    icon: const Icon(Icons.remove),
+                                    onPressed: () {
+                                      setState(() {
+                                        if (dialogQty > 0) {
+                                          dialogQty--;
+                                          updateQtyCallback(dialogQty);
+                                        }
+                                      });
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                  Text(
+                                    '$dialogQty',
+                                    style: const TextStyle(
+                                      fontSize: 18,
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.add),
+                                    onPressed: () {
+                                      setState(() {
+                                        dialogQty++;
+                                        updateQtyCallback(dialogQty);
+                                      });
+                                    },
+                                    color: Colors.white,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+            actions: <Widget>[
+  Row(
+    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    children: [
+      Padding(
+        padding: const EdgeInsets.only(left: 10),
+        child: Text(
+          '\$ $price',
+          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+        ),
+      ),
+      ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: const Color.fromARGB(255, 92, 88, 88),
+        ),
+        onPressed: () {
+          updateQtyCallback(dialogQty);
+          _saveBasketItem(productName, dialogQty, img);
+
+          // Check if it's the first item added
+          if (!_firstItemAdded) {
+            _fetchDataStoreBasketModel(dialogQty);
+            setState(() {
+              _firstItemAdded = true;
+            });
+          }
+          
+          Navigator.of(context).pop();
+        },
+        child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
+      ),
+    ],
+  ),
+],
+
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
+    },
+  );
+}
   @override
   bool get wantKeepAlive => true;
+
+  // when user click on the first product it will create a order id to user
+  final TextEditingController _totalController = TextEditingController();
+  String? _result = '';
+
+  void _fetchDataStoreBasketModel(int total) {
+    // Call the function to fetch data passing the total amount
+    fetchDataStoreBasketModel(total)
+        .then((storeBasketModels) {
+          // Handle the result here
+          setState(() {
+            _result = 'Success: ${storeBasketModels.toString()}';
+          });
+        })
+        .catchError((error) {
+          // Handle any errors here
+          setState(() {
+            _result = 'Error: $error';
+            print("$error"); // Print the error for debugging
+          });
+        });
+  }
+
 }

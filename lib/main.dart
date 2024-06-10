@@ -2,6 +2,7 @@ import 'package:cammotor_new_version/src/model/property.dart';
 import 'package:cammotor_new_version/src/providers/pagination.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
 import 'package:cammotor_new_version/src/providers/sub_categ.dart';
+import 'package:cammotor_new_version/src/screen/authentication/login.dart';
 import 'package:cammotor_new_version/src/services/property.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -62,8 +63,8 @@ class MyApp extends StatelessWidget {
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
       // home: RealProduct(subcategoryID: 13,),
-      // home: const AddToCardScreenTest(),
       home:  SplashPage(),
+      // home:  ProfileInfoScreen(),
       debugShowCheckedModeBanner: false,
     );
   }
