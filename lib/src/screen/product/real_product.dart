@@ -6,22 +6,21 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:shared_preferences/shared_preferences.dart';
-
+import '../../model/store_basket.dart';
 import '../../services/store_basket.dart';
 import '../bucket/basket_notifier.dart';
 import '../bucket/bucket_screen.dart';
+import 'package:http/http.dart' as http;
 
 class RealProduct extends StatefulWidget {
   final int subcategoryID;
 
-  const RealProduct({Key? key, required this.subcategoryID}) : super(key: key);
+  const RealProduct({super.key, required this.subcategoryID});
 
   @override
   State<RealProduct> createState() => _RealProductState();
 }
-
 class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClientMixin{
-  // final scrollController = ScrollController();
   late ScrollController _scrollController;
   late SearchController searchController;
   late TextEditingController textEditingController = TextEditingController();
@@ -29,7 +28,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   int basketCount = 0;
   int qty = 0;
   bool _firstItemAdded = false;
-  
+  String? _orderId; 
 
   void _onIncreaseQuantity(String productName) {
     setState(() {
@@ -58,7 +57,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     bool itemExists = false;
 
     for (int i = 0; i < basketItems.length; i++) {
-      final item = jsonDecode(basketItems[i]);
+      final item = jsonDecode(basketItems[i]) as Map<String, dynamic>;
       if (item['productName'] == productName) {
         // Update the quantity of the existing product
         item['quantity'] += quantity;
@@ -68,7 +67,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       }
     }
 
-    // If the product does not exist in the basket, add a new entry
     if (!itemExists) {
       basketItems.add(jsonEncode({
         'productName': productName,
@@ -77,7 +75,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       }));
     }
     await prefs.setStringList('basketItems', basketItems);
-
     await _loadBasketCount();
   }
 
@@ -87,15 +84,15 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     int totalCount = 0;
 
     for (var item in basketItems) {
-      final decodedItem = jsonDecode(item);
-      totalCount += (decodedItem['quantity'] as num).toInt();
+      final decodedItem = jsonDecode(item) as Map<String, dynamic>;
+      totalCount += decodedItem['quantity'] as int;
     }
 
     setState(() {
       basketCount = totalCount;
     });
   }
-
+  
   @override
   void initState() {
     super.initState();
@@ -107,7 +104,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       Provider.of<RealProductProvider>(context, listen: false).fetchInitialData(widget.subcategoryID);
     });
   }
-  
+
   Future<void> fetchInitialData(int subcategoryID) async {
     final provider = Provider.of<RealProductProvider>(context, listen: false);
     try {
@@ -129,7 +126,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     final prefs = await SharedPreferences.getInstance();
     final basketItems = prefs.getStringList('basketItems') ?? [];
     final updatedBasketItems = basketItems.map((item) {
-      final decodedItem = jsonDecode(item);
+      final decodedItem = jsonDecode(item) as Map<String, dynamic>;
       if (decodedItem['productName'] == productName) {
         decodedItem['quantity'] = quantity;
       }
@@ -138,7 +135,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
 
     await prefs.setStringList('basketItems', updatedBasketItems);
   }
-    
 
   @override
   Widget build(BuildContext context) {
@@ -231,8 +227,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                       print('ScrollNotification triggered, fetching more data...');
                       provider.fetchProductData(
                         provider.currentPage + 1,
-                        // provider.pageSize,
-                        // widget.subcategoryID,
                       );
                       return true;
                     }
@@ -262,8 +256,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                             product.yearID,
                             product.modelID,
                             product.price.toString(),
-                            product.resourceID.toString(),
-                            
+                            product.resourceID.toString(),                          
                             updateQuantity,
                           );
                         },
@@ -308,7 +301,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                                           '${dotenv.env['BASE_URL']}/storage/${product.img}',
                                           maxWidth: 200,
                                           maxHeight: 200),
-                                      // fit: BoxFit.cover,
                                     ),
                                   ),
                                 ),
@@ -388,7 +380,6 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       provider.fetchProductData(widget.subcategoryID);
     }
   }
-
 
   @override
   void dispose() {
@@ -521,40 +512,38 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
               },
             ),
             actions: <Widget>[
-  Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      Padding(
-        padding: const EdgeInsets.only(left: 10),
-        child: Text(
-          '\$ $price',
-          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-        ),
-      ),
-      ElevatedButton(
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color.fromARGB(255, 92, 88, 88),
-        ),
-        onPressed: () {
-          updateQtyCallback(dialogQty);
-          _saveBasketItem(productName, dialogQty, img);
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(left: 10),
+                    child: Text(
+                      '\$ $price',
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                    ),
+                  ),
+                  ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 92, 88, 88),
+                    ),
+                    onPressed: () {
+                      updateQtyCallback(dialogQty);
+                      _saveBasketItem(productName, dialogQty, img);
 
-          // Check if it's the first item added
-          if (!_firstItemAdded) {
-            _fetchDataStoreBasketModel(dialogQty);
-            setState(() {
-              _firstItemAdded = true;
-            });
-          }
-          
-          Navigator.of(context).pop();
-        },
-        child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
-      ),
-    ],
-  ),
-],
-
+                      if (!_firstItemAdded) {
+                        _fetchDataStoreBasketModel(dialogQty);
+                        setState(() {
+                          _firstItemAdded = true;
+                        });
+                      }
+                      
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       );
@@ -568,22 +557,51 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   final TextEditingController _totalController = TextEditingController();
   String? _result = '';
 
-  void _fetchDataStoreBasketModel(int total) {
-    // Call the function to fetch data passing the total amount
-    fetchDataStoreBasketModel(total)
-        .then((storeBasketModels) {
-          // Handle the result here
+  List<StoreBasketModel> _orderList = [];
+
+  Future<void> _fetchDataStoreBasketModel(int subcategoryID) async {
+    try {
+      final response = await fetchDataStoreBasketModel(subcategoryID);
+      print('Server response: $response'); 
+
+      if (response.containsKey('data')) {
+        final Map<String, dynamic> responseData = response;
+        final orderData = responseData['data'];
+        if (orderData != null) {
+          final orderId = orderData['id'].toString();
+          print('Order data: $orderData'); 
+          print('Extracted order ID: $orderId'); 
           setState(() {
-            _result = 'Success: ${storeBasketModels.toString()}';
+            _orderId = orderId;
           });
-        })
-        .catchError((error) {
-          // Handle any errors here
+          await _storeOrderId(orderId);
+        } else {
+          print('Order data is null');
           setState(() {
-            _result = 'Error: $error';
-            print("$error"); // Print the error for debugging
+            _orderId = null;
           });
+        }
+      } else if (response.containsKey('orderId')) {
+        final orderId = response['orderId'].toString();
+        setState(() {
+          _orderId = orderId;
         });
+        await _storeOrderId(orderId);
+      } else {
+        print('Unexpected response structure');
+        setState(() {
+          _orderId = null;
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
   }
 
+  Future<void> _storeOrderId(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('orderId', orderId);
+  }
 }
+
+

@@ -3,6 +3,7 @@ class StoreBasketModel {
   final int total;
   final String status;
   final int userID;
+  final int orderId;
   final String paymentID;
   final String createdAt;
   final String updatedAt;
@@ -15,6 +16,7 @@ class StoreBasketModel {
     required this.paymentID,
     required this.createdAt,
     required this.updatedAt,
+    required this.orderId,
   });
 
   factory StoreBasketModel.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,7 @@ class StoreBasketModel {
       paymentID: json['paymentID'],
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      orderId: json['orderId'],
     );
   }
 }

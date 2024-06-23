@@ -1,9 +1,12 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
+import '../../services/store_basket.dart';
 import 'basket_notifier.dart';
+
 
 class BasketPage extends StatefulWidget {
   const BasketPage({Key? key}) : super(key: key);
@@ -14,11 +17,18 @@ class BasketPage extends StatefulWidget {
 
 class _BasketPageState extends State<BasketPage> {
   List<Map<String, dynamic>> basketItems = [];
+  String? _orderId;
 
   @override
   void initState() {
     super.initState();
     _loadBasketItems();
+  }
+
+  Future<void> _storeOrderId(String orderId) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('orderId', orderId);
+    print('Stored order ID: $orderId'); // Debug statement
   }
 
   Future<void> _loadBasketItems() async {
@@ -32,7 +42,10 @@ class _BasketPageState extends State<BasketPage> {
 
     setState(() {
       basketItems = loadedItems;
+      _orderId = prefs.getString('orderId'); // Retrieve the order ID
     });
+
+    print('Loaded order ID: $_orderId'); // Debug statement
     _updateBasketCount();
   }
 
@@ -47,12 +60,67 @@ class _BasketPageState extends State<BasketPage> {
     await prefs.setStringList('basketItems', updatedBasketStringList);
     setState(() {});
     BasketNotifier.decrementCount(itemToRemove['quantity'] as int);
+
+    // Check if all items are removed and delete the order
+    if (basketItems.isEmpty && _orderId != null) {
+      await _deleteOrder(_orderId!);
+      setState(() {
+        _orderId = null; // Reset the order ID
+      });
+      prefs.remove('orderId'); // Remove the order ID from shared preferences
+    }
+  }
+
+  Future<void> _deleteOrder(String orderId) async {
+    final String url = '${dotenv.env['BASE_URL']}/order/$orderId/delete';
+
+    try {
+      final response = await http.post(Uri.parse(url));
+
+      print('API Response: ${response.statusCode} - ${response.body}'); // Log the API response
+
+      if (response.statusCode == 200) {
+        final responseData = jsonDecode(response.body);
+        if (responseData['status'] == 200) {
+          print('Order deleted successfully');
+        } else {
+          print('Failed to delete order: ${responseData['message']}');
+        }
+      } else {
+        print('Failed to delete order. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error deleting order: $e');
+    }
   }
 
   void _updateBasketCount() {
-    final totalCount =
-        basketItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
+    final totalCount = basketItems.fold(0, (sum, item) => sum + (item['quantity'] as int));
     BasketNotifier.updateCount(totalCount);
+  }
+
+  Future<void> _fetchDataStoreBasketModel(int subcategoryID) async {
+    try {
+      final response = await fetchDataStoreBasketModel(subcategoryID);
+      print('Server response: $response'); // Debug print
+
+      if (response.containsKey('orderId')) {
+        final orderId = response['orderId'].toString();
+        print('Extracted order ID: $orderId'); // Debug print
+        setState(() {
+          _orderId = orderId;
+        });
+        await _storeOrderId(orderId); // Store order ID in SharedPreferences
+      } else {
+        print('Unexpected response structure');
+        setState(() {
+          _orderId = null;
+        });
+      }
+      print('Loaded order ID: $_orderId');
+    } catch (e) {
+      print('Error fetching data: $e');
+    }
   }
 
   @override
@@ -86,6 +154,7 @@ class _BasketPageState extends State<BasketPage> {
                     trailing: IconButton(
                       icon: const Icon(Icons.delete),
                       onPressed: () {
+                        print('Removing item: $item');
                         _removeBasketItem(index);
                       },
                     ),
@@ -108,7 +177,6 @@ class _BasketPageState extends State<BasketPage> {
                   backgroundColor: const Color.fromARGB(255, 80, 70, 72),
                   disabledForegroundColor: Colors.grey.withOpacity(0.38),
                   shadowColor: Colors.grey,
-                  // elevation: 5,
                   side: const BorderSide(color: Colors.white, width: 2),
                   shape: const BeveledRectangleBorder(
                     borderRadius: BorderRadius.all(Radius.circular(10)),
@@ -122,7 +190,7 @@ class _BasketPageState extends State<BasketPage> {
                 child: const Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.shopify_sharp,size: 24,),
+                    Icon(Icons.shopify_sharp, size: 24,),
                     Text("ទិញ"),
                   ],
                 ),
