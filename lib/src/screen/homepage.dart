@@ -561,7 +561,7 @@ class _HomePageState extends State<HomePage> {
                 label: 'ទំនិញ',
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.menu_book_outlined, size: 32),
+                icon: Icon(Icons.check_box, size: 32),
                 label: "ការកម្មង់",
               ),
               BottomNavigationBarItem(

@@ -1,5 +1,5 @@
 class RealProductModel {
-  final int id;
+  final int productId;
   final String name;
   final String img;
   final String price;
@@ -20,7 +20,7 @@ class RealProductModel {
 
   factory RealProductModel.fromJson(Map<String, dynamic> json) {
     return RealProductModel(
-      id: json["id"],
+      productId: json["id"],
       name: json["name"],
       img: json["image"],
       price: json["price"],
@@ -42,7 +42,7 @@ class RealProductModel {
   }
 
   RealProductModel({
-    required this.id,
+    required this.productId,
     required this.name,
     required this.img,
     required this.price,

@@ -33,7 +33,7 @@ class RealProductProvider extends ChangeNotifier {
 
       // Check for duplicate products
       final newProducts = products.where((newProduct) =>
-          !productData.any((existingProduct) => newProduct.id == existingProduct.id)).toList();
+          !productData.any((existingProduct) => newProduct.productId == existingProduct.productId)).toList();
 
       if (newProducts.isNotEmpty) {
         productData.addAll(newProducts);

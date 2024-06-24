@@ -49,16 +49,17 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       setState(() {
         qty = newQuantity;
       });
+      
     }
 
-  Future<void> _saveBasketItem(String productName, int quantity, String img) async {
+  Future<void> _saveBasketItem(int productId, String productName, int quantity, String img) async {
     final prefs = await SharedPreferences.getInstance();
     final basketItems = prefs.getStringList('basketItems') ?? [];
     bool itemExists = false;
 
     for (int i = 0; i < basketItems.length; i++) {
       final item = jsonDecode(basketItems[i]) as Map<String, dynamic>;
-      if (item['productName'] == productName) {
+      if (item['productId'] == productId) {
         // Update the quantity of the existing product
         item['quantity'] += quantity;
         basketItems[i] = jsonEncode(item);
@@ -69,6 +70,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
 
     if (!itemExists) {
       basketItems.add(jsonEncode({
+        'productId': productId,
         'productName': productName,
         'quantity': quantity,
         'img': img,
@@ -77,6 +79,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     await prefs.setStringList('basketItems', basketItems);
     await _loadBasketCount();
   }
+
 
   Future<void> _loadBasketCount() async {
     final prefs = await SharedPreferences.getInstance();
@@ -247,18 +250,19 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                       }
                       return GestureDetector(
                         onTap: () {
-                          _showMyDialog(
-                            product.name,
-                            '${dotenv.env['BASE_URL']}/storage/${product.img}',
-                            product.instock.toString(),
-                            product.qty,
-                            product.discount.toDouble(),
-                            product.yearID,
-                            product.modelID,
-                            product.price.toString(),
-                            product.resourceID.toString(),                          
-                            updateQuantity,
-                          );
+                         _showMyDialog(
+                          product.productId,  
+                          product.name,
+                          '${dotenv.env['BASE_URL']}/storage/${product.img}',
+                          product.instock.toString(),
+                          product.qty,
+                          product.discount.toDouble(),
+                          product.yearID,
+                          product.modelID,
+                          product.price.toString(),
+                          product.resourceID.toString(),
+                          updateQuantity,
+                        );
                         },
                         child: Theme(
                           data: ThemeData(dialogBackgroundColor: Colors.white),
@@ -388,168 +392,171 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   }
 
   Future<void> _showMyDialog(
-  String productName,
-  String img,
-  String instock,
-  int initialQuantity,
-  double discount,
-  int yearID,
-  int modelID,
-  String price,
-  String resourceID,
-  Function(int) updateQtyCallback,
-) async {
-  int dialogQty = 0;
+    int productId,  // Add productId here
+    String productName,
+    String img,
+    String instock,
+    int initialQuantity,
+    double discount,
+    int yearID,
+    int modelID,
+    String price,
+    String resourceID,
+    Function(int) updateQtyCallback,
+  ) async {
+    int dialogQty = 0;
 
-  return showDialog<void>(
-    context: context,
-    barrierDismissible: true,
-    builder: (BuildContext context) {
-      return Center(
-        child: Theme(
-          data: ThemeData(dialogBackgroundColor: Colors.white),
-          child: AlertDialog(
-            backgroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10.0),
-            ),
-            title: Center(
-              child: Text(
-                productName,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  color: Color.fromARGB(255, 92, 88, 88),
+    return showDialog<void>(
+      context: context,
+      barrierDismissible: true,
+      builder: (BuildContext context) {
+        return Center(
+          child: Theme(
+            data: ThemeData(dialogBackgroundColor: Colors.white),
+            child: AlertDialog(
+              backgroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10.0),
+              ),
+              title: Center(
+                child: Text(
+                  productName,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Color.fromARGB(255, 92, 88, 88),
+                  ),
                 ),
               ),
-            ),
-            content: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return SingleChildScrollView(
-                  child: SizedBox(
-                    width: MediaQuery.of(context).size.width * 0.8,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: <Widget>[
-                        Center(
-                          child: Image.network(
-                            img,
-                            width: double.infinity,
-                            height: MediaQuery.of(context).size.height * 0.25,
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        Text(
-                          '• In Stock: $instock',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '• Available Quantity: $initialQuantity',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '• Discount: \$ $discount',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          '• Year: $yearID',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Container(
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                color: const Color.fromARGB(255, 66, 53, 53),
-                              ),
-                              child: Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(Icons.remove),
-                                    onPressed: () {
-                                      setState(() {
-                                        if (dialogQty > 0) {
-                                          dialogQty--;
-                                          updateQtyCallback(dialogQty);
-                                        }
-                                      });
-                                    },
-                                    color: Colors.white,
-                                  ),
-                                  Text(
-                                    '$dialogQty',
-                                    style: const TextStyle(
-                                      fontSize: 18,
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.add),
-                                    onPressed: () {
-                                      setState(() {
-                                        dialogQty++;
-                                        updateQtyCallback(dialogQty);
-                                      });
-                                    },
-                                    color: Colors.white,
-                                  ),
-                                ],
-                              ),
+              content: StatefulBuilder(
+                builder: (BuildContext context, StateSetter setState) {
+                  return SingleChildScrollView(
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.8,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisSize: MainAxisSize.min,
+                        children: <Widget>[
+                          Center(
+                            child: Image.network(
+                              img,
+                              width: double.infinity,
+                              height: MediaQuery.of(context).size.height * 0.25,
+                              fit: BoxFit.cover,
                             ),
-                          ],
-                        ),
-                      ],
+                          ),
+                          const SizedBox(height: 20),
+                          Text(
+                            '• In Stock: $instock',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '• Available Quantity: $initialQuantity',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '• Discount: \$ $discount',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 6),
+                          Text(
+                            '• Year: $yearID',
+                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Container(
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10),
+                                  color: const Color.fromARGB(255, 66, 53, 53),
+                                ),
+                                child: Row(
+                                  children: [
+                                    IconButton(
+                                      icon: const Icon(Icons.remove),
+                                      onPressed: () {
+                                        setState(() {
+                                          if (dialogQty > 0) {
+                                            dialogQty--;
+                                            updateQtyCallback(dialogQty);
+                                          }
+                                        });
+                                      },
+                                      color: Colors.white,
+                                    ),
+                                    Text(
+                                      '$dialogQty',
+                                      style: const TextStyle(
+                                        fontSize: 18,
+                                        color: Colors.white,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(Icons.add),
+                                      onPressed: () {
+                                        setState(() {
+                                          dialogQty++;
+                                          updateQtyCallback(dialogQty);
+                                        });
+                                      },
+                                      color: Colors.white,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                );
-              },
-            ),
-            actions: <Widget>[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.only(left: 10),
-                    child: Text(
-                      '\$ $price',
-                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
-                    ),
-                  ),
-                  ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 92, 88, 88),
-                    ),
-                    onPressed: () {
-                      updateQtyCallback(dialogQty);
-                      _saveBasketItem(productName, dialogQty, img);
-
-                      if (!_firstItemAdded) {
-                        _fetchDataStoreBasketModel(dialogQty);
-                        setState(() {
-                          _firstItemAdded = true;
-                        });
-                      }
-                      
-                      Navigator.of(context).pop();
-                    },
-                    child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
-                  ),
-                ],
+                  );
+                },
               ),
-            ],
+              actions: <Widget>[
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.only(left: 10),
+                      child: Text(
+                        '\$ $price',
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w500),
+                      ),
+                    ),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color.fromARGB(255, 92, 88, 88),
+                      ),
+                      onPressed: () {
+                        updateQtyCallback(dialogQty);
+                        _saveBasketItem(productId, productName, dialogQty, img);  // Use productId here
+
+                        if (!_firstItemAdded) {
+                          _fetchDataStoreBasketModel(dialogQty);
+                          setState(() {
+                            _firstItemAdded = true;
+                          });
+                        }
+
+                        Navigator.of(context).pop();
+                      },
+                      child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
+                    ),
+
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-      );
-    },
-  );
-}
+        );
+      },
+    );
+  }
+
   @override
   bool get wantKeepAlive => true;
 

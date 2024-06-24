@@ -7,7 +7,6 @@ import 'package:http/http.dart' as http;
 import '../../services/store_basket.dart';
 import 'basket_notifier.dart';
 
-
 class BasketPage extends StatefulWidget {
   const BasketPage({Key? key}) : super(key: key);
 
@@ -28,7 +27,7 @@ class _BasketPageState extends State<BasketPage> {
   Future<void> _storeOrderId(String orderId) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('orderId', orderId);
-    print('Stored order ID: $orderId'); // Debug statement
+    print('Stored order ID: $orderId');
   }
 
   Future<void> _loadBasketItems() async {
@@ -42,10 +41,26 @@ class _BasketPageState extends State<BasketPage> {
 
     setState(() {
       basketItems = loadedItems;
-      _orderId = prefs.getString('orderId'); // Retrieve the order ID
+      _orderId = prefs.getString('orderId'); 
     });
 
-    print('Loaded order ID: $_orderId'); // Debug statement
+    print('Loaded order ID: $_orderId');
+    _updateBasketCount();
+  }
+
+
+  Future<void> _addItemToBasket(Map<String, dynamic> item) async {
+    final prefs = await SharedPreferences.getInstance();
+    final basketStringList = prefs.getStringList('basketItems') ?? [];
+    
+    basketStringList.add(jsonEncode(item));
+    
+    await prefs.setStringList('basketItems', basketStringList);
+    
+    setState(() {
+      basketItems.add(item);
+    });
+    
     _updateBasketCount();
   }
 
@@ -61,13 +76,12 @@ class _BasketPageState extends State<BasketPage> {
     setState(() {});
     BasketNotifier.decrementCount(itemToRemove['quantity'] as int);
 
-    // Check if all items are removed and delete the order
     if (basketItems.isEmpty && _orderId != null) {
       await _deleteOrder(_orderId!);
       setState(() {
-        _orderId = null; // Reset the order ID
+        _orderId = null;
       });
-      prefs.remove('orderId'); // Remove the order ID from shared preferences
+      prefs.remove('orderId');
     }
   }
 
@@ -77,7 +91,7 @@ class _BasketPageState extends State<BasketPage> {
     try {
       final response = await http.post(Uri.parse(url));
 
-      print('API Response: ${response.statusCode} - ${response.body}'); // Log the API response
+      print('API Response: ${response.statusCode} - ${response.body}');
 
       if (response.statusCode == 200) {
         final responseData = jsonDecode(response.body);
@@ -102,15 +116,15 @@ class _BasketPageState extends State<BasketPage> {
   Future<void> _fetchDataStoreBasketModel(int subcategoryID) async {
     try {
       final response = await fetchDataStoreBasketModel(subcategoryID);
-      print('Server response: $response'); // Debug print
+      print('Server response: $response');
 
       if (response.containsKey('orderId')) {
         final orderId = response['orderId'].toString();
-        print('Extracted order ID: $orderId'); // Debug print
+        print('Extracted order ID: $orderId');
         setState(() {
           _orderId = orderId;
         });
-        await _storeOrderId(orderId); // Store order ID in SharedPreferences
+        await _storeOrderId(orderId);
       } else {
         print('Unexpected response structure');
         setState(() {
@@ -133,36 +147,42 @@ class _BasketPageState extends State<BasketPage> {
       body: Column(
         children: [
           Expanded(
-            child: ListView.builder(
-              itemCount: basketItems.length,
-              itemBuilder: (context, index) {
-                final item = basketItems[index];
-                final imageUrl = '${item['img']}';
-                return Card(
-                  child: ListTile(
-                    leading: item['img'] != null
-                        ? CachedNetworkImage(
-                            imageUrl: imageUrl,
-                            placeholder: (context, url) =>
-                                const CircularProgressIndicator(),
-                            errorWidget: (context, url, error) =>
-                                const Icon(Icons.error),
-                          )
-                        : const SizedBox.shrink(),
-                    title: Text(item['productName'] ?? 'Unknown Product'),
-                    subtitle: Text('ចំនួន x ${item['quantity']}'),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete),
-                      onPressed: () {
-                        print('Removing item: $item');
-                        _removeBasketItem(index);
-                      },
-                    ),
+            child: basketItems.isEmpty
+                ? const Center(child: Text('Your basket is empty'))
+                : ListView.builder(
+                    itemCount: basketItems.length,
+                    itemBuilder: (context, index) {
+                      final item = basketItems[index];
+                      final imageUrl = '${item['img']}';
+                      return Card(
+                        child: ListTile(
+                          leading: item['img'] != null
+                              ? CachedNetworkImage(
+                                  imageUrl: imageUrl,
+                                  placeholder: (context, url) => const CircularProgressIndicator(),
+                                  errorWidget: (context, url, error) => const Icon(Icons.error),
+                                )
+                              : const SizedBox.shrink(),
+                          title: Text(item['productName'] ?? 'Unknown Product'),
+                          subtitle: Text('ចំនួន x ${item['quantity']}'),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: () {
+                              print('Removing item: $item');
+                              _removeBasketItem(index);
+                            },
+                          ),
+                          onTap: () {
+                            final productId = item['productId'];
+                            print('Item: $item');
+                            print('Product ID: $productId');
+                          },
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-            ),
           ),
+
           Padding(
             padding: const EdgeInsets.only(bottom: 50),
             child: Container(
