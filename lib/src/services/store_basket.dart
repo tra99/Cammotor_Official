@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../model/order_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../model/order_detail.dart';
 
 Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
   try {
@@ -22,6 +22,7 @@ Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
         final responseData = json.decode(response.body);
         if (responseData.containsKey('test') && responseData['test'].containsKey('id')) {
           userId = responseData['test']['id'];
+          print('Fetched userID: $userId'); // Log the userID
         } else {
           throw Exception('Invalid response format: Missing "id" field.');
         }
@@ -56,6 +57,11 @@ Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
         final orderData = jsonData['data'];
         final int orderId = orderData['id'];
         
+        // Save orderId and userId in SharedPreferences
+        await prefs.setInt('orderId', orderId);
+        await prefs.setInt('userID', userId); // Store userID as an integer
+        print('Stored order ID: $orderId');
+
         // Parse the order data into a List of StoreBasketModel objects
         List<OrderDetailModel> storeBasketModels = [];
         if (orderData.containsKey('order')) {
@@ -67,6 +73,7 @@ Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
 
         return {
           'orderId': orderId,
+          'userID': userId,  // Include userID in the returned map
           'storeBasketModels': storeBasketModels,
         };
       } else {

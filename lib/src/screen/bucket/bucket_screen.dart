@@ -4,6 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import '../../services/edit_order.dart';
 import '../../services/store_basket.dart';
 import 'basket_notifier.dart';
 
@@ -246,33 +247,38 @@ class _BasketPageState extends State<BasketPage> {
             child: Container(
               width: 200,
               child: TextButton(
-                autofocus: true,
-                onPressed: _isAnyItemChecked() ? () {
-                  print("Press");
-                } : null,
-                style: TextButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: const Color.fromARGB(255, 80, 70, 72),
-                  disabledForegroundColor: Colors.grey.withOpacity(0.38),
-                  shadowColor: Colors.grey,
-                  side: const BorderSide(color: Colors.white, width: 2),
-                  shape: const BeveledRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(10)),
-                  ),
-                  textStyle: const TextStyle(
-                    color: Colors.green,
-                    fontSize: 24,
-                    fontStyle: FontStyle.italic,
-                  ),
+              autofocus: true,
+              onPressed: _isAnyItemChecked() ? () async {
+                if (_orderId != null) {
+                  await updateOrder(5, 0); // Ensure total and status are valid integers
+                } else {
+                  print('Order ID is null, cannot update order');
+                }
+              } : null,
+              style: TextButton.styleFrom(
+                foregroundColor: Colors.white,
+                backgroundColor: const Color.fromARGB(255, 80, 70, 72),
+                disabledForegroundColor: Colors.grey.withOpacity(0.38),
+                shadowColor: Colors.grey,
+                side: const BorderSide(color: Colors.white, width: 2),
+                shape: const BeveledRectangleBorder(
+                  borderRadius: BorderRadius.all(Radius.circular(10)),
                 ),
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.shopify_sharp, size: 24,),
-                    Text("ទិញ"),
-                  ],
+                textStyle: const TextStyle(
+                  color: Colors.green,
+                  fontSize: 24,
+                  fontStyle: FontStyle.italic,
                 ),
               ),
+              child: const Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.shopify_sharp, size: 24,),
+                  Text("ទិញ"),
+                ],
+              ),
+            ),
+
             ),
           ),
         ],
