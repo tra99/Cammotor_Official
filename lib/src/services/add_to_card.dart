@@ -1,40 +1,24 @@
 import 'dart:convert';
-import 'package:cammotor_new_version/src/model/add_to_card.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-List<AddToCardModel> cachedAddToCardModel = [];
+class OrderItemService {
+  Future<void> addOrderItem(int orderId, Map<String, dynamic> item) async {
+    final response = await http.post(
+      Uri.parse('${dotenv.env['BASE_URL']}/order_items'),
+      body: jsonEncode({
+        'quantity_order': item['quantity_order'],
+        'total': item['total'],
+        'orderID': orderId,
+        'productID': item['productID'],
+      }),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    );
 
-Future<List<AddToCardModel>> fetchDataAddToCardModel() async {
-  if (cachedAddToCardModel.isNotEmpty) {
-    // If cached data is available, return it immediately.
-    return cachedAddToCardModel;
-  }
-
-  try {
-    final response = await http.get(Uri.parse('${dotenv.env['BASE_URL']}/order_items'));
-
-    if (response.statusCode == 200) {
-      final jsonData = json.decode(response.body);
-      final List<dynamic> addToCardModelListJson = jsonData['order'];
-
-      // Parse the JSON data into a List of CategoryModel objects
-      List<AddToCardModel> addToCardModels = addToCardModelListJson.map((addToCardModelJson) {
-        return AddToCardModel.fromJson(addToCardModelJson);
-        
-      }).toList();
-
-      cachedAddToCardModel = addToCardModels;
-
-      return addToCardModels;
-    } else {
-      throw Exception('Failed to load add to card data. Status code: ${response.statusCode}');
-    }
-  } catch (e) {
-    if (cachedAddToCardModel.isNotEmpty) {
-      return cachedAddToCardModel;
-    } else {
-      throw e;
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add order item: ${response.statusCode}');
     }
   }
 }

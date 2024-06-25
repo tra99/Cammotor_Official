@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cammotor_new_version/src/model/order_detail.dart';
 import 'package:cammotor_new_version/src/providers/real_product.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
 import 'package:badges/badges.dart' as badges;
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../model/store_basket.dart';
 import '../../services/store_basket.dart';
 import '../bucket/basket_notifier.dart';
 import '../bucket/bucket_screen.dart';
@@ -52,7 +52,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
       
     }
 
-  Future<void> _saveBasketItem(int productId, String productName, int quantity, String img) async {
+  Future<void> _saveBasketItem(int productId, String productName, int quantity, String img, double price) async {
     final prefs = await SharedPreferences.getInstance();
     final basketItems = prefs.getStringList('basketItems') ?? [];
     bool itemExists = false;
@@ -74,11 +74,13 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
         'productName': productName,
         'quantity': quantity,
         'img': img,
+        'price': price,  // Include the price
       }));
     }
     await prefs.setStringList('basketItems', basketItems);
     await _loadBasketCount();
   }
+
 
 
   Future<void> _loadBasketCount() async {
@@ -129,13 +131,12 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     final prefs = await SharedPreferences.getInstance();
     final basketItems = prefs.getStringList('basketItems') ?? [];
     final updatedBasketItems = basketItems.map((item) {
-      final decodedItem = jsonDecode(item) as Map<String, dynamic>;
+    final decodedItem = jsonDecode(item) as Map<String, dynamic>;
       if (decodedItem['productName'] == productName) {
         decodedItem['quantity'] = quantity;
       }
       return jsonEncode(decodedItem);
     }).toList();
-
     await prefs.setStringList('basketItems', updatedBasketItems);
   }
 
@@ -392,7 +393,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
   }
 
   Future<void> _showMyDialog(
-    int productId,  // Add productId here
+    int productId, 
     String productName,
     String img,
     String instock,
@@ -533,7 +534,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                       ),
                       onPressed: () {
                         updateQtyCallback(dialogQty);
-                        _saveBasketItem(productId, productName, dialogQty, img);  // Use productId here
+                        _saveBasketItem(productId, productName, dialogQty, img, double.parse(price)); // Ensure price is passed as a double
 
                         if (!_firstItemAdded) {
                           _fetchDataStoreBasketModel(dialogQty);
@@ -541,12 +542,10 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
                             _firstItemAdded = true;
                           });
                         }
-
                         Navigator.of(context).pop();
                       },
                       child: const Text('ដាក់កន្ត្រក', style: TextStyle(color: Colors.white)),
                     ),
-
                   ],
                 ),
               ],
@@ -557,14 +556,14 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     );
   }
 
+
   @override
   bool get wantKeepAlive => true;
 
-  // when user click on the first product it will create a order id to user
   final TextEditingController _totalController = TextEditingController();
   String? _result = '';
 
-  List<StoreBasketModel> _orderList = [];
+  List<OrderDetailModel> _orderList = [];
 
   Future<void> _fetchDataStoreBasketModel(int subcategoryID) async {
     try {
@@ -609,6 +608,34 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('orderId', orderId);
   }
+
+  Future<void> createOrderItem(
+    int quantityOrder, double total, int orderID, int productID) async {
+    final url = 'http://68.183.234.112:2025/api/order_items';
+    print('Sending POST request to $url with data: quantity_order=$quantityOrder, total=$total, orderID=$orderID, productID=$productID');
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        'quantity_order': quantityOrder,
+        'total': total,
+        'orderID': orderID,
+        'productID': productID,
+      }),
+    );
+
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+
+    if (response.statusCode != 200) {
+      print('Failed to create order item: ${response.body}');
+    } else {
+      print('Order item created successfully');
+    }
+  }
+  
 }
 
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
-import '../model/store_basket.dart';
+import '../model/order_detail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
@@ -57,11 +57,11 @@ Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
         final int orderId = orderData['id'];
         
         // Parse the order data into a List of StoreBasketModel objects
-        List<StoreBasketModel> storeBasketModels = [];
+        List<OrderDetailModel> storeBasketModels = [];
         if (orderData.containsKey('order')) {
           final List<dynamic> storeBasketModelListJson = orderData['order'];
           storeBasketModels = storeBasketModelListJson.map((storeBasketModelJson) {
-            return StoreBasketModel.fromJson(storeBasketModelJson);
+            return OrderDetailModel.fromJson(storeBasketModelJson);
           }).toList();
         }
 

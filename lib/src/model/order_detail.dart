@@ -1,4 +1,4 @@
-class StoreBasketModel {
+class OrderDetailModel {
   final int id;
   final int total;
   final String status;
@@ -8,7 +8,7 @@ class StoreBasketModel {
   final String createdAt;
   final String updatedAt;
 
-  StoreBasketModel({
+  OrderDetailModel({
     required this.id,
     required this.total,
     required this.status,
@@ -19,8 +19,8 @@ class StoreBasketModel {
     required this.orderId,
   });
 
-  factory StoreBasketModel.fromJson(Map<String, dynamic> json) {
-    return StoreBasketModel(
+  factory OrderDetailModel.fromJson(Map<String, dynamic> json) {
+    return OrderDetailModel(
       id: json['id'],
       total: json['total'],
       status: json['status'],

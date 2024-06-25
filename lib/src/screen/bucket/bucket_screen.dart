@@ -16,6 +16,7 @@ class BasketPage extends StatefulWidget {
 
 class _BasketPageState extends State<BasketPage> {
   List<Map<String, dynamic>> basketItems = [];
+  Map<int, bool> _checkedItems = {};
   String? _orderId;
 
   @override
@@ -41,26 +42,25 @@ class _BasketPageState extends State<BasketPage> {
 
     setState(() {
       basketItems = loadedItems;
-      _orderId = prefs.getString('orderId'); 
+      _orderId = prefs.getString('orderId');
     });
 
     print('Loaded order ID: $_orderId');
     _updateBasketCount();
   }
 
-
   Future<void> _addItemToBasket(Map<String, dynamic> item) async {
     final prefs = await SharedPreferences.getInstance();
     final basketStringList = prefs.getStringList('basketItems') ?? [];
-    
+
     basketStringList.add(jsonEncode(item));
-    
+
     await prefs.setStringList('basketItems', basketStringList);
-    
+
     setState(() {
       basketItems.add(item);
     });
-    
+
     _updateBasketCount();
   }
 
@@ -137,6 +137,48 @@ class _BasketPageState extends State<BasketPage> {
     }
   }
 
+  Future<void> _postOrderItem(Map<String, dynamic> item) async {
+    final String url = '${dotenv.env['BASE_URL']}/order_items';
+
+    final int quantity = item['quantity'] ?? 0;
+    final double? price = item['price']?.toDouble();
+
+    if (quantity == 0 || price == null) {
+      print('Error: Quantity or price is null');
+      print('Item: $item');
+      return;
+    }
+
+    final body = {
+      "quantity_order": quantity,
+      "total": price * quantity,
+      "orderID": _orderId,
+      "productID": item['productId'],
+    };
+
+    try {
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode(body),
+      );
+
+      print('API Response: ${response.statusCode} - ${response.body}');
+
+      if (response.statusCode == 200) {
+        print('Order item posted successfully');
+      } else {
+        print('Failed to post order item. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error posting order item: $e');
+    }
+  }
+
+  bool _isAnyItemChecked() {
+    return _checkedItems.values.any((isChecked) => isChecked);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -156,13 +198,30 @@ class _BasketPageState extends State<BasketPage> {
                       final imageUrl = '${item['img']}';
                       return Card(
                         child: ListTile(
-                          leading: item['img'] != null
-                              ? CachedNetworkImage(
-                                  imageUrl: imageUrl,
-                                  placeholder: (context, url) => const CircularProgressIndicator(),
-                                  errorWidget: (context, url, error) => const Icon(Icons.error),
-                                )
-                              : const SizedBox.shrink(),
+                          leading: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Checkbox(
+                                value: _checkedItems[index] ?? false,
+                                checkColor: const Color.fromARGB(255, 8, 98, 11),
+                                focusColor: Colors.green,
+                                onChanged: (bool? value) {
+                                  setState(() {
+                                    _checkedItems[index] = value ?? false;
+                                    _postOrderItem(item);
+                                  });
+                                },
+                                activeColor: const Color.fromARGB(255, 231, 219, 219),
+                              ),
+                              item['img'] != null
+                                  ? CachedNetworkImage(
+                                      imageUrl: imageUrl,
+                                      placeholder: (context, url) => const CircularProgressIndicator(),
+                                      errorWidget: (context, url, error) => const Icon(Icons.error),
+                                    )
+                                  : const SizedBox.shrink(),
+                            ],
+                          ),
                           title: Text(item['productName'] ?? 'Unknown Product'),
                           subtitle: Text('ចំនួន x ${item['quantity']}'),
                           trailing: IconButton(
@@ -172,26 +231,25 @@ class _BasketPageState extends State<BasketPage> {
                               _removeBasketItem(index);
                             },
                           ),
-                          onTap: () {
-                            final productId = item['productId'];
+                          onTap: () async {
                             print('Item: $item');
-                            print('Product ID: $productId');
+                            print('Product ID: ${item['productId']}');
+                            // await _postOrderItem(item);
                           },
                         ),
                       );
                     },
                   ),
           ),
-
           Padding(
             padding: const EdgeInsets.only(bottom: 50),
             child: Container(
               width: 200,
               child: TextButton(
                 autofocus: true,
-                onPressed: () {
+                onPressed: _isAnyItemChecked() ? () {
                   print("Press");
-                },
+                } : null,
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 80, 70, 72),
