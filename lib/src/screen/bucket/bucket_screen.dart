@@ -28,7 +28,7 @@ class _BasketPageState extends State<BasketPage> {
 
   Future<void> _storeOrderId(String orderId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('orderId', orderId);
+    await prefs.setString('orderId', orderId); // Store as String
     print('Stored order ID: $orderId');
   }
 
@@ -43,6 +43,8 @@ class _BasketPageState extends State<BasketPage> {
 
     setState(() {
       basketItems = loadedItems;
+      // final orderIdString = prefs.getString('orderId');
+      // _orderId = orderIdString;
       _orderId = prefs.getString('orderId');
     });
 
@@ -250,7 +252,11 @@ class _BasketPageState extends State<BasketPage> {
               autofocus: true,
               onPressed: _isAnyItemChecked() ? () async {
                 if (_orderId != null) {
-                  await updateOrder(5, 0); // Ensure total and status are valid integers
+                   final result = await fetchDataStoreBasketModel(2);
+
+                    final orderId = result['orderId'];
+                    final userId = result['userID'];
+                  await updateOrder(2, 0,orderId,userId); // Ensure total and status are valid integers
                 } else {
                   print('Order ID is null, cannot update order');
                 }
