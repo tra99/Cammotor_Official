@@ -1,3 +1,4 @@
+import 'package:cammotor_new_version/src/screen/homepage.dart';
 import 'package:flutter/material.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -7,6 +8,7 @@ import 'package:http/http.dart' as http;
 import '../../services/edit_order.dart';
 import '../../services/store_basket.dart';
 import 'basket_notifier.dart';
+import 'package:intl/intl.dart';
 
 class BasketPage extends StatefulWidget {
   const BasketPage({Key? key}) : super(key: key);
@@ -43,8 +45,6 @@ class _BasketPageState extends State<BasketPage> {
 
     setState(() {
       basketItems = loadedItems;
-      // final orderIdString = prefs.getString('orderId');
-      // _orderId = orderIdString;
       _orderId = prefs.getString('orderId');
     });
 
@@ -178,8 +178,30 @@ class _BasketPageState extends State<BasketPage> {
     }
   }
 
+  Future<bool> _updateOrder(int subcategoryID) async {
+    final result = await fetchDataStoreBasketModel(subcategoryID);
+    if (result.containsKey('orderId') && result.containsKey('userID')) {
+      final orderId = result['orderId'];
+      final userId = result['userID'];
+      await updateOrder(subcategoryID, 0, orderId, userId);
+      return true; // Return true if order update is successful
+    } else {
+      return false; // Return false if order update failed
+    }
+  }
+
   bool _isAnyItemChecked() {
     return _checkedItems.values.any((isChecked) => isChecked);
+  }
+
+  double _calculateTotal() {
+    double total = 0.0;
+    for (var item in basketItems) {
+      if (_checkedItems[basketItems.indexOf(item)] == true) {
+        total += (item['price'] ?? 0.0) * (item['quantity'] ?? 0);
+      }
+    }
+    return total;
   }
 
   @override
@@ -245,50 +267,172 @@ class _BasketPageState extends State<BasketPage> {
                   ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: 50),
-            child: Container(
+            padding: const EdgeInsets.all(16.0),
+            child: SizedBox(
               width: 200,
-              child: TextButton(
-              autofocus: true,
-              onPressed: _isAnyItemChecked() ? () async {
-                if (_orderId != null) {
-                   final result = await fetchDataStoreBasketModel(2);
-
-                    final orderId = result['orderId'];
-                    final userId = result['userID'];
-                  await updateOrder(2, 0,orderId,userId); // Ensure total and status are valid integers
-                } else {
-                  print('Order ID is null, cannot update order');
-                }
-              } : null,
-              style: TextButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: const Color.fromARGB(255, 80, 70, 72),
-                disabledForegroundColor: Colors.grey.withOpacity(0.38),
-                shadowColor: Colors.grey,
-                side: const BorderSide(color: Colors.white, width: 2),
-                shape: const BeveledRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(10)),
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isAnyItemChecked()
+                    ? () async {
+                        bool isSuccess = await _updateOrder(1);
+                        if (isSuccess) {
+                          _dialogSuccess(_calculateTotal());
+                        }
+                      }
+                    : null,
+                style: TextButton.styleFrom(
+                  foregroundColor: Colors.white,
+                  backgroundColor: const Color.fromARGB(255, 80, 70, 72),
+                  disabledForegroundColor: Colors.grey.withOpacity(0.38),
+                  shadowColor: Colors.grey,
+                  side: const BorderSide(color: Colors.white, width: 2),
+                  shape: const BeveledRectangleBorder(
+                    borderRadius: BorderRadius.all(Radius.circular(10)),
+                  ),
+                  textStyle: const TextStyle(
+                    color: Colors.green,
+                    fontSize: 24,
+                    fontStyle: FontStyle.italic,
+                  ),
                 ),
-                textStyle: const TextStyle(
-                  color: Colors.green,
-                  fontSize: 24,
-                  fontStyle: FontStyle.italic,
+                child: const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.shopify_sharp),
+                    Text('ទិញ'),
+                  ],
                 ),
               ),
-              child: const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.shopify_sharp, size: 24,),
-                  Text("ទិញ"),
-                ],
-              ),
-            ),
-
             ),
           ),
         ],
       ),
+    );
+  }
+
+  // Format the current date
+  DateTime now = DateTime.now();
+  String formattedDate = DateFormat('MMMM dd, yyyy').format(DateTime.now());
+
+  // Show dialog when order is successful
+  void _dialogSuccess(double total) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.all(Radius.circular(20.0)),
+          ),
+          contentPadding: const EdgeInsets.all(20.0),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.green.withOpacity(0.2),
+                  shape: BoxShape.circle,
+                ),
+                child: const Padding(
+                  padding: EdgeInsets.all(15.0),
+                  child: Icon(
+                    Icons.check_circle,
+                    color: Colors.green,
+                    size: 60.0,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20.0),
+              const Text(
+                'Payment Success!',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20.0,
+                ),
+              ),
+              const SizedBox(height: 10.0),
+              const Divider(),
+              const SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Total',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    '\$ ${total.toStringAsFixed(2)}',
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 10.0),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Date',
+                    style: TextStyle(
+                      fontSize: 16.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    formattedDate,
+                    style: const TextStyle(
+                      fontSize: 16.0,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20.0),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushReplacement(
+                        context,
+                        MaterialPageRoute(builder: (context) => const HomePage()),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      foregroundColor: Colors.white,
+                      backgroundColor: const Color.fromARGB(255, 80, 70, 72),
+                      shadowColor: Colors.grey,
+                      side: const BorderSide(color: Colors.white, width: 2),
+                      shape: const BeveledRectangleBorder(
+                        borderRadius: BorderRadius.all(Radius.circular(10)),
+                      ),
+                      textStyle: const TextStyle(
+                        fontSize: 24,
+                        fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.verified),
+                        SizedBox(width: 8.0),
+                        Text(
+                          'ទិញបានជោគជ័យ',
+                          style: TextStyle(fontSize: 14),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }
