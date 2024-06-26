@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../services/store_basket.dart';
+import '../../services/store_basket.dart';
 
 class OrderCard extends StatelessWidget {
   final Map<String, dynamic> order;

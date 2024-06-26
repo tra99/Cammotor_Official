@@ -5,7 +5,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import '../../services/edit_order.dart';
 import '../../services/store_basket.dart';
 import 'basket_notifier.dart';
 import 'package:intl/intl.dart';
@@ -30,7 +29,7 @@ class _BasketPageState extends State<BasketPage> {
 
   Future<void> _storeOrderId(String orderId) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('orderId', orderId); // Store as String
+    await prefs.setString('orderId', orderId); 
     print('Stored order ID: $orderId');
   }
 
@@ -343,7 +342,7 @@ class _BasketPageState extends State<BasketPage> {
               ),
               const SizedBox(height: 20.0),
               const Text(
-                'Payment Success!',
+                'Order Success!',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20.0,
