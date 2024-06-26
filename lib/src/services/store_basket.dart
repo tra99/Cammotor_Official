@@ -123,7 +123,7 @@ Future<void> updateOrder(int total, int status, int orderId, int userId) async {
       body: jsonEncode({
         'total': total,
         'status': status,
-        'userID': userId, // Send userID as an integer
+        'userID': userId,
       }),
       headers: {
         'Content-Type': 'application/json',
@@ -149,16 +149,30 @@ Future<void> updateOrder(int total, int status, int orderId, int userId) async {
   }
 }
 
-void someFunction() async {
-  final total = 100; // Example total
-  final status = 1;  // Example status
+Future<List<Map<String, dynamic>>> getOrderByUser(int userId) async {
+  try {
+    final response = await http.post(
+      Uri.parse('${dotenv.env['BASE_URL']}/order/$userId/userID'),
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({'userID': userId}),
+    );
 
-  // Fetch data and store basket model
-  final result = await fetchDataStoreBasketModel(total);
-
-  final orderId = result['orderId'];
-  final userId = result['userID'];
-
-  // Now call the updateOrder function with orderId and userId
-  await updateOrder(total, status, orderId, userId);
+    final responseBody = response.body;
+    if (response.statusCode == 200) {
+      final jsonData = json.decode(responseBody);
+      if (jsonData.containsKey('order') && jsonData['status'] == 200) {
+        print('Search user ordered');
+        return List<Map<String, dynamic>>.from(jsonData['order']);
+      } else {
+        throw Exception('Unexpected response format or error: ${jsonData['message']}');
+      }
+    } else {
+      throw Exception('Failed to fetch orders: ${response.statusCode}');
+    }
+  } catch (e) {
+    print('Exception caught: $e');
+    throw Exception('Error fetching orders: $e');
+  }
 }

@@ -9,6 +9,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 import '../providers/bottom_sheet.dart';
 import 'package:http/http.dart' as http;
 
+import '../services/store_basket.dart';
+import '../tests/order_list.dart';
+
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
 
@@ -43,32 +46,17 @@ class _HomePageState extends State<HomePage> {
     choices(name: 'Rpairing', image: AssetImage('assets/images/box.png')),
   ];
 
-  List<String> logomodel = [
-    "assets/images/suzuki.png",
-    "assets/images/bmw.jpg",
-    "assets/images/ducati.jpg",
-    "assets/images/yamaha1.png",
-    "assets/images/bmw.jpg",
-    "assets/images/bmw.jpg",
-    "assets/images/bmw.jpg",
-  ];
-
-  List<String> text1 = [
-    'SUZUKI',
-    'BMW',
-    'DUCATI',
-    'YAMAHA',
-    'YAMAHA',
-    'YAMAHA',
-    'YAMAHA',
-  ];
-
   List<String> text2 = [
     'ការជួសជុល',
     'លក់ទំនិញ',
     'គ្រឿងបន្លាស់',
     'ការបង្រៀន',
   ];
+
+  Future<int> _getUserId() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt('userID') ?? 0; // Replace with default user ID if needed
+  }
 
   @override
   void initState() {
@@ -221,12 +209,41 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      const Column(
-        children: [
-          Text("Bonjour"),
-          Text("Bonjour"),
-        ],
-      ),
+      
+    FutureBuilder<int>(
+      future: _getUserId(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        } else if (!snapshot.hasData || snapshot.data == 0) {
+          return Center(child: Text('User ID not found'));
+        } else {
+          final userId = snapshot.data!;
+          return FutureBuilder<List<Map<String, dynamic>>>(
+            future: getOrderByUser(userId),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return Center(child: CircularProgressIndicator());
+              } else if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(child: Text('No orders found'));
+              } else {
+                final orders = snapshot.data!;
+                return ListView.builder(
+                  itemCount: orders.length,
+                  itemBuilder: (context, index) {
+                    return OrderCard(order: orders[index]);
+                  },
+                );
+              }
+            },
+          );
+        }
+      },
+    ),
       const Column(
         children: [
           Text("Bonjour"),
@@ -557,13 +574,14 @@ class _HomePageState extends State<HomePage> {
                 label: "ទំព័រដើម",
               ),
               BottomNavigationBarItem(
-                icon: Icon(Icons.production_quantity_limits, size: 32),
-                label: 'ទំនិញ',
-              ),
-              BottomNavigationBarItem(
                 icon: Icon(Icons.check_box, size: 32),
                 label: "ការកម្មង់",
               ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.production_quantity_limits, size: 32),
+                label: 'ទំនិញ',
+              ),
+              
               BottomNavigationBarItem(
                 icon: Icon(Icons.notifications_active_outlined, size: 36),
                 label: "ដំណឹង",
