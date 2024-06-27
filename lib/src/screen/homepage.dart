@@ -32,18 +32,12 @@ class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   late List<Widget> _widgetOptions;
 
-  List<choices> ch = const <choices>[
-    choices(name: 'វីឌីអូបង្រៀន', image: AssetImage('assets/images/teaching.png')),
-    choices(name: 'ទីតាំងជួសជុល', image: AssetImage('assets/images/repair.png')),
-    choices(name: 'ទំនិញ', image: AssetImage('assets/images/product.png')),
-    choices(
-        name: 'ការលក់', image: AssetImage('assets/images/sell_motor.png')),
-  ];
-  List<choices> chs = const <choices>[
-    choices(name: 'Original', image: AssetImage('assets/images/box.png')),
-    choices(name: 'Copy', image: AssetImage('assets/images/box.png')),
-    choices(name: 'General', image: AssetImage('assets/images/box.png')),
-    choices(name: 'Rpairing', image: AssetImage('assets/images/box.png')),
+  List<Choices> ch =  <Choices>[
+    Choices(name: 'វីឌីអូបង្រៀន​',stop: "មិនដំណើរការ",maintanent: Icons.block_flipped, image: AssetImage('assets/images/teaching.png')),
+    Choices(name: 'ទីតាំងជួសជុល',stop: "មិនដំណើរការ",maintanent: Icons.block_flipped, image: AssetImage('assets/images/repair.png')),
+    Choices(name: 'ទំនិញ', image: AssetImage('assets/images/product.png')),
+    Choices(
+        name: 'ការលក់',stop: "មិនដំណើរការ",maintanent: Icons.block_flipped, image: AssetImage('assets/images/sell_motor.png')),
   ];
 
   List<String> text2 = [
@@ -65,7 +59,6 @@ class _HomePageState extends State<HomePage> {
     _widgetOptions = <Widget>[
       Column(
         crossAxisAlignment: CrossAxisAlignment.center,
-        // mainAxisAlignment: MainAxisAlignment.center,
         children: [
           SizedBox(
             width: double.infinity,
@@ -154,7 +147,7 @@ class _HomePageState extends State<HomePage> {
               alignment: Alignment.center,
               child: Center(
                 child: GridView.count(
-                  childAspectRatio: 12 / 8,
+                  childAspectRatio: 9 / 8,
                   crossAxisSpacing: 2,
                   crossAxisCount: 2,
                   mainAxisSpacing: 4,
@@ -629,15 +622,24 @@ class _HomePageState extends State<HomePage> {
 }
 
 // for card grid 4 items in home screen
-class choices {
-  const choices({required this.name, required this.image});
+class Choices {
+  Choices({
+    required this.name,
+    required this.image,
+    this.maintanent,
+    this.stop,
+  });
+
   final String name;
+  final String? stop;
+  final IconData? maintanent;
   final ImageProvider image;
 }
 
+
 class SelectCard extends StatelessWidget {
   const SelectCard({Key? key, required this.ch}) : super(key: key);
-  final choices ch;
+  final Choices ch;
 
   @override
   Widget build(BuildContext context) {
@@ -647,13 +649,44 @@ class SelectCard extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Image(image: ch.image, width: 80),
-            Text(
-              ch.name,
-              style: const TextStyle(
-                color: Color.fromARGB(255, 105, 114, 106),
-                fontSize: 18,
-              ),
+            if (ch.image != null) // Check if the image is not null
+              Image(image: ch.image!, width: 80),
+            Column(
+              children: [
+                Text(
+                  ch.name,
+                  style: const TextStyle(
+                    color: Color.fromARGB(255, 105, 114, 106),
+                    fontSize: 18,
+                  ),
+                ),
+                if (ch.maintanent != null && ch.stop != null)  // Check if the icon and stop text are not null
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        ch.maintanent,
+                        color: Color.fromARGB(255, 105, 114, 106),
+                        size: 24,
+                      ),
+                      Text(ch.stop!,style: const TextStyle(
+                        color: Color.fromARGB(255, 156, 154, 154),
+                        fontSize: 18,
+                      ),),
+                    ],
+                  ),
+                if (ch.maintanent != null && ch.stop == null)  // Check if only the icon is not null
+                  Icon(
+                    ch.maintanent,
+                    color: Color.fromARGB(255, 105, 114, 106),
+                    size: 24,
+                  ),
+                if (ch.stop != null && ch.maintanent == null)  // Check if only the stop text is not null
+                  Text(ch.stop!,style: const TextStyle(
+                    color: Color.fromARGB(255, 105, 114, 106),
+                    fontSize: 18,
+                  ),),
+              ],
             ),
           ],
         ),
@@ -661,6 +694,7 @@ class SelectCard extends StatelessWidget {
     );
   }
 }
+
 Future<void> _logout(BuildContext context) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('token');
@@ -708,7 +742,7 @@ class choice {
 
 class SelectCardPopup extends StatelessWidget {
   const SelectCardPopup({Key? key, required this.chs}) : super(key: key);
-  final choices chs;
+  final Choices chs;
 
   @override
   Widget build(BuildContext context) {

@@ -145,7 +145,7 @@ class _RealProductState extends State<RealProduct> with AutomaticKeepAliveClient
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Products'),
+        title: const Text('គ្រឿងបន្លាស់'),
         centerTitle: true,
         actions: [
           Padding(

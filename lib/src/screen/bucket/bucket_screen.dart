@@ -20,6 +20,7 @@ class _BasketPageState extends State<BasketPage> {
   List<Map<String, dynamic>> basketItems = [];
   Map<int, bool> _checkedItems = {};
   String? _orderId;
+  
 
   @override
   void initState() {
@@ -224,12 +225,28 @@ class _BasketPageState extends State<BasketPage> {
       appBar: AppBar(
         backgroundColor: const Color.fromARGB(255, 235, 233, 233),
         title: const Text('កន្ត្រកទំនិញរបស់ខ្ញុំ'),
+        // actions: [
+        //   Padding(
+        //     padding: const EdgeInsets.only(right: 10),
+        //     child: GestureDetector(
+        //       onTap: () {
+                
+        //       },
+        //       child: Row(
+        //         children: [ 
+        //           Text("ទាំងអស់"),
+        //           Icon(Icons.check_box),
+        //         ],
+        //       ),
+        //     ),
+        //   )
+        // ],
       ),
       body: Column(
         children: [
           Expanded(
             child: basketItems.isEmpty
-                ? const Center(child: Text('Your basket is empty'))
+                ? const Center(child: Text('កន្រ្តកទទេរ'))
                 : ListView.builder(
                     itemCount: basketItems.length,
                     itemBuilder: (context, index) {
@@ -365,7 +382,7 @@ class _BasketPageState extends State<BasketPage> {
               ),
               const SizedBox(height: 20.0),
               const Text(
-                'Order Success!',
+                'ការកម្មង់ជោគជ័យ',
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 20.0,
@@ -378,7 +395,7 @@ class _BasketPageState extends State<BasketPage> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   const Text(
-                    'Total',
+                    'សរុប',
                     style: TextStyle(
                       fontSize: 16.0,
                       fontWeight: FontWeight.bold,

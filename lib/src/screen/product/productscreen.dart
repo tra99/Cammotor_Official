@@ -99,7 +99,7 @@ class _ProductScreenState extends State<ProductScreen> with AutomaticKeepAliveCl
     super.build(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Category'),
+        title: const Text('ប្រភេទទំនិញ'),
         backgroundColor: const Color.fromARGB(255, 217, 217, 217),
         centerTitle: true,
         actions: [
