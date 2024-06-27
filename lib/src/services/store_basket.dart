@@ -36,6 +36,9 @@ Future<Map<String, dynamic>> fetchDataStoreBasketModel(int total) async {
         } else {
           throw Exception('Invalid response format: Missing "id" field.');
         }
+      } else if (response.statusCode == 500) {
+        print('Server error while fetching user info: ${response.body}');
+        throw Exception('Server error: ${response.statusCode}');
       } else {
         throw Exception('Failed to fetch user info: ${response.statusCode}');
       }

@@ -63,9 +63,9 @@ class MyApp extends StatelessWidget {
         ),
       ),
       // home: isLoggedIn ? const HomePage() : (showIntroScreen ?  const SplashPage() : const LoginScreen()),
-      home: RealProduct(subcategoryID: 13,),
-      // home:  SplashPage(),
-      // home:  HomePage(),
+      // home: RealProduct(subcategoryID: 13,),
+      // home:  ProfileInfoScreen(),
+      home:  SplashPage(),
       debugShowCheckedModeBanner: false,
     );
   }

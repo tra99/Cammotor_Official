@@ -72,44 +72,51 @@ class _ProfileInfoScreenState extends State<ProfileInfoScreen> {
     String? authToken = prefs.getString('token');
 
     if (authToken != null) {
-      final response = await http.get(
-        Uri.parse('${dotenv.env['BASE_URL']}/auth/user/check'),
-        headers: {
-          'Authorization': 'Bearer $authToken',
-        },
-      );
+      try {
+        final response = await http.get(
+          Uri.parse('${dotenv.env['BASE_URL']}/auth/user/check'),
+          headers: {
+            'Authorization': 'Bearer $authToken',
+          },
+        );
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        setState(() {
-          name = responseData['test']['name'];
-          email = responseData['test']['email'];
-          profile = responseData['test']['profile'];
-          userId = responseData['test']['id'];
-          id = responseData['test']['id']; // Assign the fetched user ID
-          main_balance = int.tryParse(responseData['test']['main_balance'].toString()) ?? 0; // Ensure it's an integer
-          type_userID = int.tryParse(responseData['test']['type_userID'].toString()) ?? 0; // Ensure it's an integer
+        if (response.statusCode == 200) {
+          final responseData = json.decode(response.body);
 
-          _controller1.text = responseData['test']['name'] ?? '';
-          _controller2.text = responseData['test']['email'] ?? '';
-          _controller3.text = responseData['test']['telephone'] ?? '';
-          _controller4.text = responseData['test']['dateOfBirth'] ?? '';
-          _controller5.text = responseData['test']['type_userID']?.toString() ?? '';
-          _controller7.text = responseData['test']['main_balance']?.toString() ?? '';
-          
-          // Assign the profile image URL
-          _serverImage = responseData['test']['profile'] ?? '';
-        });
-        print(responseData);
-      } else {
-        print('Failed to fetch user info');
+          setState(() {
+            name = responseData['test']['name'] ?? '';
+            email = responseData['test']['email'] ?? '';
+            profile = responseData['test']['profile'] ?? '';
+            userId = responseData['test']['id'];
+            id = responseData['test']['id'];
+            main_balance = int.tryParse(responseData['test']['main_balance'].toString()) ?? 0;
+            type_userID = int.tryParse(responseData['test']['type_userID'].toString()) ?? 0;
+
+            _controller1.text = responseData['test']['name'] ?? '';
+            _controller2.text = responseData['test']['email'] ?? '';
+            _controller3.text = responseData['test']['telephone'] ?? '';
+            _controller4.text = responseData['test']['dateOfBirth'] ?? '';
+            _controller5.text = responseData['test']['type_userID']?.toString() ?? '';
+            _controller7.text = responseData['test']['main_balance']?.toString() ?? '';
+
+            _serverImage = responseData['test']['profile'] ?? '';
+          });
+
+          print(responseData);
+        } else if (response.statusCode == 401) {
+          // Handle unauthorized response
+          print('Unauthorized. Redirecting to login.');
+          // Redirect to login or refresh token logic
+        } else {
+          print('Failed to fetch user info: ${response.statusCode}');
+        }
+      } catch (e) {
+        print('Exception caught: $e');
       }
     } else {
       print('Authentication token not found');
     }
   }
-
-
 
   Future<void> _logout(BuildContext context) async {
     SharedPreferences prefs = await SharedPreferences.getInstance();

@@ -51,6 +51,21 @@ class _BasketPageState extends State<BasketPage> {
     _updateBasketCount();
   }
 
+  Future<void> _clearBasket() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove('basketItems');
+    await prefs.remove('orderId');
+
+    setState(() {
+      basketItems.clear();
+      _checkedItems.clear();
+      _orderId = null;
+    });
+
+    BasketNotifier.updateCount(0);
+    print('Basket cleared and order ID removed');
+  }
+
   Future<void> _addItemToBasket(Map<String, dynamic> item) async {
     final prefs = await SharedPreferences.getInstance();
     final basketStringList = prefs.getStringList('basketItems') ?? [];
@@ -272,13 +287,21 @@ class _BasketPageState extends State<BasketPage> {
               height: 50,
               child: ElevatedButton(
                 onPressed: _isAnyItemChecked()
-                    ? () async {
-                        bool isSuccess = await _updateOrder(1);
-                        if (isSuccess) {
+                  ? () async {
+                      if (_orderId != null) {
+                        final orderUpdated = await _updateOrder(2);
+                        if (orderUpdated) {
+                          await _clearBasket();  // Clear basket after successful order update
                           _dialogSuccess(_calculateTotal());
+                        } else {
+                          // _dialogSuccess(_calculateTotal());
                         }
+                      } else {
+                        print('No order ID found');
                       }
-                    : null,
+                    }
+                  : null,
+
                 style: TextButton.styleFrom(
                   foregroundColor: Colors.white,
                   backgroundColor: const Color.fromARGB(255, 80, 70, 72),
